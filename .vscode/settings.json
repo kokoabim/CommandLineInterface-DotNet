@@ -1,0 +1,10 @@
+{
+    "dotnet.defaultSolution": "Kokoabim.CommandLineInterface.sln",
+    "files.exclude": {
+        "**/bin/": true,
+        "**/obj/": true,
+    },
+    "cSpell.words": [
+        "positionals"
+    ],
+}
