@@ -12,5 +12,6 @@ public enum ArgumentConstraints
     FileMustExist,
     FileMustNotExist,
     DirectoryMustExist,
-    DirectoryMustNotExist
+    DirectoryMustNotExist,
+    MustBeUrl,
 }

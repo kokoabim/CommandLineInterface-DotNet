@@ -6,7 +6,7 @@ namespace Kokoabim.CommandLineInterface;
 
 public interface IConsoleAppCommand
 {
-    IEnumerable<ConsoleArgument> Arguments { get; }
+    IReadOnlyList<ConsoleArgument> Arguments { get; }
     Func<ConsoleContext, Task<int>>? AsyncFunction { get; set; }
     bool DoNotCheckArgumentsConstraints { get; set; }
     string Name { get; set; }
@@ -20,7 +20,7 @@ public interface IConsoleAppCommand
 
 public abstract class ConsoleAppCommand
 {
-    public IEnumerable<ConsoleArgument> Arguments => _arguments;
+    public IReadOnlyList<ConsoleArgument> Arguments => _arguments;
     public Func<ConsoleContext, Task<int>>? AsyncFunction { get; set; }
     public bool DoNotCheckArgumentsConstraints { get; set; }
     public string Name { get; set; } = default!;
@@ -94,7 +94,7 @@ public abstract class ConsoleAppCommand
         var sb = new StringBuilder();
         foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Switch && !a.HideInArgumentsUseText)) sb.Append(arg.ArgumentUseText).Append(' ');
         foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Option && !a.HideInArgumentsUseText)) sb.Append(arg.ArgumentUseText).Append(' ');
-        foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Positional).OrderBy(a => a.Index)) sb.Append(arg.ArgumentUseText).Append(' ');
+        foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Positional).OrderBy(a => a.Index)) sb.Append($"{(arg.IsRequired ? "" : "[")}{arg.ArgumentUseText}{(arg.IsRequired ? "" : "]")}").Append(' ');
         return sb.Length > 0 ? sb.ToString()[..^1] : null;
     }
 
@@ -177,12 +177,13 @@ public abstract class ConsoleAppCommand
 
                     if (argument is not null)
                     {
-                        argument.Value = value;
+                        argument.AddValue(value);
 
-                        if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None)
+                        argument.PreProcess();
+
+                        if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None && !argument.CheckConstraints())
                         {
-                            if (argument.PreConstraintProcessing is not null) argument.Value = argument.PreConstraintProcessing(argument);
-                            if (!argument.CheckConstraints()) badArgs.Add(argument);
+                            badArgs.Add(argument);
                         }
 
                         continue; // do not fall through if in this block
@@ -209,13 +210,25 @@ public abstract class ConsoleAppCommand
                 continue;
             }
 
-            argument.Value = arg;
+            argument.AddValue(arg);
 
-            if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None)
+            argument.PreProcess();
+
+            if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None && !argument.CheckConstraints())
             {
-                if (argument.PreConstraintProcessing is not null) argument.Value = argument.PreConstraintProcessing(argument);
-                if (!argument.CheckConstraints()) badArgs.Add(argument);
+                badArgs.Add(argument);
                 continue;
+            }
+        }
+
+        foreach (var nonRequiredMissingArgThatIsDefaultValue in Arguments.Where(a => !a.IsBuiltIn && !a.IsRequired && a.IsDefaultValue))
+        {
+            // these are not processed above
+            nonRequiredMissingArgThatIsDefaultValue.PreProcess();
+
+            if (!DoNotCheckArgumentsConstraints && nonRequiredMissingArgThatIsDefaultValue.Constraints != ArgumentConstraints.None && !nonRequiredMissingArgThatIsDefaultValue.CheckConstraints())
+            {
+                badArgs.Add(nonRequiredMissingArgThatIsDefaultValue);
             }
         }
 

@@ -2,7 +2,7 @@ namespace Kokoabim.CommandLineInterface;
 
 public class ConsoleContext
 {
-    public IEnumerable<ConsoleArgument> Arguments => _consoleAppCommand.Arguments;
+    public IReadOnlyList<ConsoleArgument> Arguments => _consoleAppCommand.Arguments;
     public CancellationToken CancellationToken { get; }
     public string HelpText => _consoleAppCommand.HelpText();
 

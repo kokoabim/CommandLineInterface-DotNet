@@ -12,9 +12,11 @@ public class ConsoleArgument
     };
 
     public ArgumentConstraints Constraints { get; set; }
+    public Action<ConsoleArgument>? CustomPreProcess { get; set; }
     public object? DefaultValue { get; set; }
     public bool Exists => GetValueOrNull() is not null;
     public string? HelpText { get; set; }
+    public bool HasMultipleValues => _values.Count > 1;
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
 
@@ -41,13 +43,15 @@ public class ConsoleArgument
         _ => throw new ArgumentOutOfRangeException(nameof(Type))
     };
 
-    public Func<ConsoleArgument, object?>? PreConstraintProcessing { get; set; }
+    public ArgumentPreProcesses PreProcesses { get; set; }
     public ArgumentType Type { get; set; }
-    public object? Value { get; set; }
+    public object? Value => _values.FirstOrDefault();
+    public IReadOnlyList<object> Values => _values;
     #endregion 
 
     public static readonly ConsoleArgument GlobalHelpSwitch = new("help", "help", "Show help", ArgumentType.Switch) { HideInArgumentsUseText = true };
     public static readonly ConsoleArgument GlobalVersionSwitch = new("version", "version", "Show version", ArgumentType.Switch) { HideInArgumentsUseText = true };
+    private readonly List<object> _values = [];
 
     public ConsoleArgument(
         string name,
@@ -57,19 +61,24 @@ public class ConsoleArgument
         bool isRequired = false,
         ArgumentConstraints constraints = ArgumentConstraints.None,
         object? defaultValue = null,
-        Func<ConsoleArgument, object?>? preConstraintProcessing = null)
+        ArgumentPreProcesses preProcesses = ArgumentPreProcesses.None,
+        Action<ConsoleArgument>? customPreProcess = null)
     {
         DefaultValue = defaultValue;
         Constraints = constraints;
+        CustomPreProcess = customPreProcess;
         HelpText = helpText;
         Identifier = identifier ?? "";
         IsRequired = isRequired;
         Name = name;
-        PreConstraintProcessing = preConstraintProcessing;
+        PreProcesses = preProcesses;
         Type = type;
 
         if (Type != ArgumentType.Positional && string.IsNullOrWhiteSpace(identifier)) throw new ArgumentException($"{nameof(Identifier)} is required for non-positional arguments");
     }
+
+    #region methods
+    public void AddValue(object value) => _values.Add(value);
 
     public bool AsBool() => bool.Parse(AsString());
 
@@ -96,6 +105,8 @@ public class ConsoleArgument
         ArgumentConstraints.DirectoryMustExist => GetValueOrNull() is string s && Directory.Exists(s),
         ArgumentConstraints.DirectoryMustNotExist => GetValueOrNull() is string s && !Directory.Exists(s),
 
+        ArgumentConstraints.MustBeUrl => GetValueOrNull() is string s && Uri.TryCreate(s, UriKind.Absolute, out _),
+
         _ => throw new ArgumentOutOfRangeException(nameof(Constraints))
     };
 
@@ -109,5 +120,21 @@ public class ConsoleArgument
 
     public object? GetValueOrNull() => Value ?? DefaultValue;
 
+    public void PreProcess()
+    {
+        if (PreProcesses.HasFlag(ArgumentPreProcesses.ExpandEnvironmentVariables))
+        {
+            for (int i = 0; i < _values.Count; i++)
+            {
+                if (_values[i] is string s) _values[i] = Environment.ExpandEnvironmentVariables(s);
+            }
+
+            if (DefaultValue is string dv) DefaultValue = Environment.ExpandEnvironmentVariables(dv);
+        }
+
+        if (CustomPreProcess is not null) CustomPreProcess(this);
+    }
+
     public override string? ToString() => GetValueOrNull()?.ToString();
+    #endregion 
 }
