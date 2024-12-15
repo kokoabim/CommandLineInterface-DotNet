@@ -184,9 +184,10 @@ public abstract class ConsoleAppCommand
                     {
                         argument.Value = value;
 
-                        if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None && !argument.CheckConstraints())
+                        if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None)
                         {
-                            badArgs.Add(argument);
+                            if (argument.PreConstraintProcessing is not null) argument.Value = argument.PreConstraintProcessing(argument);
+                            if (!argument.CheckConstraints()) badArgs.Add(argument);
                         }
 
                         continue; // do not fall through if in this block
@@ -215,9 +216,10 @@ public abstract class ConsoleAppCommand
 
             argument.Value = arg;
 
-            if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None && !argument.CheckConstraints())
+            if (!DoNotCheckArgumentsConstraints && argument.Constraints != ArgumentConstraints.None)
             {
-                badArgs.Add(argument);
+                if (argument.PreConstraintProcessing is not null) argument.Value = argument.PreConstraintProcessing(argument);
+                if (!argument.CheckConstraints()) badArgs.Add(argument);
                 continue;
             }
         }

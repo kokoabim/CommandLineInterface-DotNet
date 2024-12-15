@@ -5,7 +5,7 @@ public class TestConsoleApp
     public async Task<int> RunWithArguments(string[] args)
     {
         var consoleApp = new ConsoleApp(
-            [new ConsoleArgument("yourName", isRequired: true, constraints: ArgumentConstraints.NotEmptyOrWhiteSpace, helpText: "The name of the user")],
+            [new ConsoleArgument("yourName", isRequired: true, constraints: ArgumentConstraints.MustNotBeEmptyOrWhiteSpace, helpText: "The name of the user")],
             titleText: $"{nameof(TestConsoleApp)}.{nameof(RunWithArguments)}",
             syncFunction: context =>
             {

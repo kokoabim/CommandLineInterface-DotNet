@@ -3,14 +3,14 @@ namespace Kokoabim.CommandLineInterface;
 public enum ArgumentConstraints
 {
     None,
-    NotEmpty,
-    NotWhiteSpace,
-    NotEmptyOrWhiteSpace,
-    IsInteger,
-    IsDouble,
-    IsBoolean,
-    FileExists,
-    FileDoesNotExist,
-    DirectoryExists,
-    DirectoryDoesNotExist
+    MustNotBeEmpty,
+    MustNotBeWhiteSpace,
+    MustNotBeEmptyOrWhiteSpace,
+    MustBeInteger,
+    MustBeDouble,
+    MustBeBoolean,
+    FileMustExist,
+    FileMustNotExist,
+    DirectoryMustExist,
+    DirectoryMustNotExist
 }

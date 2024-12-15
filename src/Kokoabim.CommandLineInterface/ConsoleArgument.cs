@@ -17,6 +17,7 @@ public class ConsoleArgument
     public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
+    public Func<ConsoleArgument, object?>? PreConstraintProcessing { get; set; }
 
     /// <summary>
     /// If the argument is an option or switch, the identifier (i.e. -i or --identifier).
@@ -54,7 +55,8 @@ public class ConsoleArgument
         ArgumentType type = ArgumentType.Positional,
         bool isRequired = false,
         ArgumentConstraints constraints = ArgumentConstraints.None,
-        object? defaultValue = null)
+        object? defaultValue = null,
+        Func<ConsoleArgument, object?>? preConstraintProcessing = null)
     {
         DefaultValue = defaultValue;
         Constraints = constraints;
@@ -62,12 +64,12 @@ public class ConsoleArgument
         Identifier = identifier ?? "";
         IsRequired = isRequired;
         Name = name;
+        PreConstraintProcessing = preConstraintProcessing;
         Type = type;
 
         if (Type != ArgumentType.Positional && string.IsNullOrWhiteSpace(identifier)) throw new ArgumentException($"{nameof(Identifier)} is required for non-positional arguments");
     }
 
-    #region methods
     public bool AsBool() => bool.Parse(AsString());
 
     public double AsDouble() => double.Parse(AsString());
@@ -80,18 +82,18 @@ public class ConsoleArgument
     {
         ArgumentConstraints.None => true,
 
-        ArgumentConstraints.NotEmpty => GetValueOrNull() is string s && !string.IsNullOrEmpty(s),
-        ArgumentConstraints.NotWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
-        ArgumentConstraints.NotEmptyOrWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
+        ArgumentConstraints.MustNotBeEmpty => GetValueOrNull() is string s && !string.IsNullOrEmpty(s),
+        ArgumentConstraints.MustNotBeWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
+        ArgumentConstraints.MustNotBeEmptyOrWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
 
-        ArgumentConstraints.IsInteger => int.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.IsDouble => double.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.IsBoolean => bool.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeInteger => int.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeDouble => double.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeBoolean => bool.TryParse(GetValueOrNull() as string, out _),
 
-        ArgumentConstraints.FileExists => GetValueOrNull() is string s && File.Exists(s),
-        ArgumentConstraints.FileDoesNotExist => GetValueOrNull() is string s && !File.Exists(s),
-        ArgumentConstraints.DirectoryExists => GetValueOrNull() is string s && Directory.Exists(s),
-        ArgumentConstraints.DirectoryDoesNotExist => GetValueOrNull() is string s && !Directory.Exists(s),
+        ArgumentConstraints.FileMustExist => GetValueOrNull() is string s && File.Exists(s),
+        ArgumentConstraints.FileMustNotExist => GetValueOrNull() is string s && !File.Exists(s),
+        ArgumentConstraints.DirectoryMustExist => GetValueOrNull() is string s && Directory.Exists(s),
+        ArgumentConstraints.DirectoryMustNotExist => GetValueOrNull() is string s && !Directory.Exists(s),
 
         _ => throw new ArgumentOutOfRangeException(nameof(Constraints))
     };
@@ -107,5 +109,4 @@ public class ConsoleArgument
     public object? GetValueOrNull() => Value ?? DefaultValue;
 
     public override string? ToString() => GetValueOrNull()?.ToString();
-    #endregion 
 }
