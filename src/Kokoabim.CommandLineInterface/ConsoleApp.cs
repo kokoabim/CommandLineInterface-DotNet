@@ -20,13 +20,11 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     public IEnumerable<ConsoleCommand> Commands => _commands;
     public string Version { get; set; }
 
-    #region fields
     private int _cancelEventCount = 0;
     private CancellationTokenSource? _cancellationTokenSource;
     private ConsoleCommand? _command;
     private bool _hasProcessedCliArguments;
     private bool _isCommandBased;
-    #endregion 
 
     /// <summary>
     /// Create a console application.
@@ -120,28 +118,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         return Console.ReadLine()!;
     }
 
-    /// <summary>
-    /// Run the console application
-    /// </summary>
-    public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            if (ProcessArguments(args)) return await RunFunctionAsync(cancellationToken);
-        }
-        catch (TaskCanceledException)
-        {
-            Console.Error.WriteLine("Unhandled task cancellation");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Unhandled error: {ex.Message}");
-        }
-
-        return 1;
-    }
-
-    internal override string HelpText()
+    public override string HelpText()
     {
         var sb = new StringBuilder();
 
@@ -171,6 +148,27 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         }
 
         return sb.ToString()[..^1];
+    }
+
+    /// <summary>
+    /// Run the console application
+    /// </summary>
+    public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (ProcessArguments(args)) return await RunFunctionAsync(cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+            Console.Error.WriteLine("Unhandled task cancellation");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Unhandled error: {ex.Message}");
+        }
+
+        return 1;
     }
 
     internal bool ProcessArguments(string[] args)
@@ -249,7 +247,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 
         try
         {
-            var context = new ConsoleContext(Arguments, cancellationToken);
+            var context = new ConsoleContext(this, cancellationToken);
             return AsyncFunction is not null ? await AsyncFunction(context) : SyncFunction!(context);
         }
         catch (Exception ex)

@@ -2,8 +2,6 @@ namespace Kokoabim.CommandLineInterface.Tests;
 
 public class TestConsoleAppTests
 {
-    #region methods
-
     [Fact]
     public async Task WithArgs()
     {
@@ -123,6 +121,4 @@ public class TestConsoleAppTests
         Assert.Equal(1, actual);
         Assert.Equal("Double a number\nCommand: double number\n\nSwitches:\n help - Show help\n version - Show version\n\nArguments:\n number - The number to double\n", debugWriter.Output);
     }
-
-    #endregion 
 }

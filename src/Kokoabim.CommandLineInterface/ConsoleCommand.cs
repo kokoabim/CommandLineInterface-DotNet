@@ -19,9 +19,7 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
         TitleText = titleText;
     }
 
-    #region methods
-
-    internal override string HelpText()
+    public override string HelpText()
     {
         var sb = new StringBuilder();
 
@@ -41,7 +39,7 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
 
         try
         {
-            var context = new ConsoleContext(Arguments, cancellationToken);
+            var context = new ConsoleContext(this, cancellationToken);
             return AsyncFunction is not null ? await AsyncFunction(context) : SyncFunction!(context);
         }
         catch (Exception ex)
@@ -50,6 +48,4 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
             return 1;
         }
     }
-
-    #endregion 
 }

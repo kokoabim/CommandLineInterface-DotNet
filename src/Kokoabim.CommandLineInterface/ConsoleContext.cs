@@ -2,12 +2,20 @@ namespace Kokoabim.CommandLineInterface;
 
 public class ConsoleContext
 {
-    public IEnumerable<ConsoleArgument> Arguments { get; }
+    public IEnumerable<ConsoleArgument> Arguments => _consoleAppCommand.Arguments;
     public CancellationToken CancellationToken { get; }
+    public string HelpText => _consoleAppCommand.HelpText();
 
-    public ConsoleContext(IEnumerable<ConsoleArgument> arguments, CancellationToken cancellationToken)
+    /// <summary>
+    /// Returns true if no arguments exist or arguments exist but none have values (built-in arguments are ignored).
+    /// </summary>
+    public bool NoArgumentValuesExist => Arguments.All(a => !a.Exists || a.IsBuiltIn);
+
+    private readonly IConsoleAppCommand _consoleAppCommand;
+
+    public ConsoleContext(IConsoleAppCommand consoleAppCommand, CancellationToken cancellationToken)
     {
-        Arguments = arguments;
+        _consoleAppCommand = consoleAppCommand;
         CancellationToken = cancellationToken;
     }
 

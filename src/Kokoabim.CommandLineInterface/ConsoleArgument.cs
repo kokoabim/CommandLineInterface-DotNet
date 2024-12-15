@@ -17,7 +17,6 @@ public class ConsoleArgument
     public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
-    public Func<ConsoleArgument, object?>? PreConstraintProcessing { get; set; }
 
     /// <summary>
     /// If the argument is an option or switch, the identifier (i.e. -i or --identifier).
@@ -25,6 +24,7 @@ public class ConsoleArgument
     public string Identifier { get; set; }
 
     public int Index { get; set; } = -1;
+    public bool IsBuiltIn => this == GlobalHelpSwitch || this == GlobalVersionSwitch;
     public bool IsDefaultValue => Value is null && DefaultValue is not null;
     public bool IsRequired { get; set; }
 
@@ -41,6 +41,7 @@ public class ConsoleArgument
         _ => throw new ArgumentOutOfRangeException(nameof(Type))
     };
 
+    public Func<ConsoleArgument, object?>? PreConstraintProcessing { get; set; }
     public ArgumentType Type { get; set; }
     public object? Value { get; set; }
     #endregion 

@@ -15,11 +15,11 @@ public interface IConsoleAppCommand
 
     void AddArgument(ConsoleArgument argument);
     void AddArguments(IEnumerable<ConsoleArgument> arguments);
+    string HelpText();
 }
 
 public abstract class ConsoleAppCommand
 {
-    #region properties
     public IEnumerable<ConsoleArgument> Arguments => _arguments;
     public Func<ConsoleContext, Task<int>>? AsyncFunction { get; set; }
     public bool DoNotCheckArgumentsConstraints { get; set; }
@@ -28,16 +28,11 @@ public abstract class ConsoleAppCommand
     public string? TitleText { get; set; }
     internal string? ArgumentsUseText => GenerateArgumentsUseText();
     internal string? CommandUseText => $"{Name}{(ArgumentsUseText is not null ? $" {ArgumentsUseText}" : null)}";
-    #endregion 
 
-    #region fields
     protected readonly List<ConsoleCommand> _commands = [];
     private readonly List<ConsoleArgument> _arguments = [ConsoleArgument.GlobalHelpSwitch, ConsoleArgument.GlobalVersionSwitch];
     private int _maxPositionalIndex = -1;
     private static readonly Regex _optionOrSwitchRegex = new(@"^--?(?<name>[^:=]+)([:=](?<value>.*))?$", RegexOptions.Compiled);
-    #endregion 
-
-    #region methods
 
     public void AddArgument(ConsoleArgument argument)
     {
@@ -50,7 +45,7 @@ public abstract class ConsoleAppCommand
         foreach (var arg in arguments) AddArgument(arg);
     }
 
-    internal abstract string HelpText();
+    public abstract string HelpText();
 
     protected void AddArgumentsToHelpText(StringBuilder sb)
     {
@@ -230,6 +225,4 @@ public abstract class ConsoleAppCommand
 
         return !(badArguments.Any() || missingArguments.Any() || unknownArguments.Any());
     }
-
-    #endregion 
 }
