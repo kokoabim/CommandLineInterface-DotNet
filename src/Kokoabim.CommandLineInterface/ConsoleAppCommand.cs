@@ -53,7 +53,7 @@ public abstract class ConsoleAppCommand
         if (switches.Any())
         {
             sb.AppendLine("\nSwitches:");
-            foreach (var arg in switches) sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
+            foreach (var arg in switches) sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
         }
 
         var options = Arguments.Where(a => a.Type == ArgumentType.Option);

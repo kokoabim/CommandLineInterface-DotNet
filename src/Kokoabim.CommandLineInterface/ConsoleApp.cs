@@ -133,7 +133,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
             foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Switch))
             {
                 sb.AppendLine("\nSwitches:");
-                sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
+                sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
             }
 
             foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Option))

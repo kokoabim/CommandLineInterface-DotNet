@@ -24,14 +24,20 @@ public class ConsoleContext
     /// <summary>
     /// Gets the positional argument with the specified name. If the argument is not found, throws an exception.
     /// </summary>
-    public ConsoleArgument Get(string name) => Arguments.First(a => a.Name == name && a.Type == ArgumentType.Positional);
+    public ConsoleArgument Get(string name) =>
+        Arguments.FirstOrDefault(a => a.Name == name && a.Type == ArgumentType.Positional)
+        ?? throw new ArgumentException($"Argument '{name}' not found");
 
     /// <summary>
     /// Gets the positional argument with the specified index. If the argument is not found, throws an exception.
     /// </summary>
-    public ConsoleArgument Get(int index) => Arguments.First(a => a.Index == index && a.Type == ArgumentType.Positional);
+    public ConsoleArgument Get(int index) =>
+        Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional)
+        ?? throw new ArgumentException($"Argument at index {index} not found");
 
-    public ConsoleArgument GetOption(string identifier, bool compareName = false) => Arguments.First(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option);
+    public ConsoleArgument GetOption(string identifier, bool compareName = false) =>
+        Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option)
+        ?? throw new ArgumentException($"Option '{identifier}' not found");
 
     public ConsoleArgument? GetOptionOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option);
 
@@ -49,7 +55,9 @@ public class ConsoleContext
     /// </summary>
     public ConsoleArgument? GetOrDefault(int index) => Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional);
 
-    public ConsoleArgument GetSwitch(string identifier, bool compareName = false) => Arguments.First(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch);
+    public ConsoleArgument GetSwitch(string identifier, bool compareName = false) =>
+        Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch)
+        ?? throw new ArgumentException($"Switch '{identifier}' not found");
 
     public ConsoleArgument? GetSwitchOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch);
 

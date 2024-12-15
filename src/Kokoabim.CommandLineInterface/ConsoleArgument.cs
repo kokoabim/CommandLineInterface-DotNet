@@ -35,6 +35,14 @@ public class ConsoleArgument
     /// </summary>
     public string Name { get; set; }
 
+    public string LongNameIdentifier => Type switch
+    {
+        ArgumentType.Positional => Name,
+        ArgumentType.Option => $"{Identifier}:{Name}",
+        ArgumentType.Switch => Identifier != Name ? $"{Identifier},{Name}" : Identifier,
+        _ => throw new ArgumentOutOfRangeException(nameof(Type))
+    };
+
     public string NameIdentifier => Type switch
     {
         ArgumentType.Positional => Name,
