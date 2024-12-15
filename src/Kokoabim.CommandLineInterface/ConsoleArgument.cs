@@ -104,9 +104,9 @@ public class ConsoleArgument
         ArgumentConstraints.MustNotBeWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
         ArgumentConstraints.MustNotBeEmptyOrWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
 
-        ArgumentConstraints.MustBeInteger => int.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.MustBeDouble => double.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.MustBeBoolean => bool.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeInteger => GetValueOrNull() is var o && o is int || int.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeDouble => GetValueOrNull() is var o && o is double || double.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeBoolean => GetValueOrNull() is var o && o is bool || bool.TryParse(GetValueOrNull() as string, out _),
 
         ArgumentConstraints.FileMustExist => GetValueOrNull() is string s && File.Exists(s),
         ArgumentConstraints.FileMustNotExist => GetValueOrNull() is string s && !File.Exists(s),
