@@ -33,13 +33,13 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
 
     internal bool ProcessArguments(string[] args) => ProcessCliArguments(args);
 
-    internal async Task<int> RunFunctionAsync(CancellationToken cancellationToken = default)
+    internal async Task<int> RunFunctionAsync(IConsoleEvents consoleEvents, CancellationToken cancellationToken = default)
     {
         if (AsyncFunction is null && SyncFunction is null) throw new InvalidOperationException("Command function not set");
 
         try
         {
-            var context = new ConsoleContext(this, cancellationToken);
+            var context = new ConsoleContext(this, consoleEvents, cancellationToken);
             return AsyncFunction is not null ? await AsyncFunction(context) : SyncFunction!(context);
         }
         catch (Exception ex)

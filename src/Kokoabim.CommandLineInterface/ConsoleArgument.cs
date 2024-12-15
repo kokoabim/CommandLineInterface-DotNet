@@ -15,8 +15,8 @@ public class ConsoleArgument
     public Action<ConsoleArgument>? CustomPreProcess { get; set; }
     public object? DefaultValue { get; set; }
     public bool Exists => GetValueOrNull() is not null;
-    public string? HelpText { get; set; }
     public bool HasMultipleValues => _values.Count > 1;
+    public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
 
@@ -30,11 +30,6 @@ public class ConsoleArgument
     public bool IsDefaultValue => Value is null && DefaultValue is not null;
     public bool IsRequired { get; set; }
 
-    /// <summary>
-    /// If the argument is a positional argument, the name of the argument. If the argument is an option or switch, the name of the argument value.
-    /// </summary>
-    public string Name { get; set; }
-
     public string LongNameIdentifier => Type switch
     {
         ArgumentType.Positional => Name,
@@ -42,6 +37,11 @@ public class ConsoleArgument
         ArgumentType.Switch => Identifier != Name ? $"{Identifier},{Name}" : Identifier,
         _ => throw new ArgumentOutOfRangeException(nameof(Type))
     };
+
+    /// <summary>
+    /// If the argument is a positional argument, the name of the argument. If the argument is an option or switch, the name of the argument value.
+    /// </summary>
+    public string Name { get; set; }
 
     public string NameIdentifier => Type switch
     {

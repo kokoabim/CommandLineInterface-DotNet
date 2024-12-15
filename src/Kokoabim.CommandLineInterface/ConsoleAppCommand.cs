@@ -32,7 +32,8 @@ public abstract class ConsoleAppCommand
     protected readonly List<ConsoleCommand> _commands = [];
     private readonly List<ConsoleArgument> _arguments = [ConsoleArgument.GlobalHelpSwitch, ConsoleArgument.GlobalVersionSwitch];
     private int _maxPositionalIndex = -1;
-    private static readonly Regex _optionOrSwitchRegex = new(@"^--?(?<name>[^:=]+)([:=](?<value>.*))?$", RegexOptions.Compiled);
+    private static readonly Regex _optionOrSwitchIdentifierRegex = new(@"^-(?<id>[^:=-])([:=](?<value>.*))?$", RegexOptions.Compiled);
+    private static readonly Regex _optionOrSwitchNameRegex = new(@"^--(?<name>[^:=]+)([:=](?<value>.*))?$", RegexOptions.Compiled);
 
     public void AddArgument(ConsoleArgument argument)
     {
@@ -113,7 +114,7 @@ public abstract class ConsoleAppCommand
             {
                 showHelpText = false;
                 Console.Error.WriteLine("Bad arguments:");
-                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}");
+                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}: {arg.GetValueOrNull() ?? "(null)"}");
             }
 
             if (missingArguments.Any())
@@ -158,26 +159,27 @@ public abstract class ConsoleAppCommand
 
             if (!endOfOptionsAndSwitches && arg.Length > 0 && arg[0] == '-')
             {
-                var match = _optionOrSwitchRegex.Match(arg);
-                if (match.Success)
+                bool? matchedByName = null;
+                var match = _optionOrSwitchNameRegex.Match(arg);
+                if (!match.Success)
                 {
-                    var identifier = match.Groups["name"].Value;
-                    object? value;
+                    match = _optionOrSwitchIdentifierRegex.Match(arg);
+                    if (match.Success) matchedByName = false;
+                }
+                else matchedByName = true;
 
-                    if (match.Groups["value"].Success) // option
-                    {
-                        argument = Arguments.FirstOrDefault(a => a.Type == ArgumentType.Option && a.Identifier == identifier);
-                        value = match.Groups["value"].Value;
-                    }
-                    else // switch
-                    {
-                        argument = Arguments.FirstOrDefault(a => a.Type == ArgumentType.Switch && a.Identifier == identifier);
-                        value = true;
-                    }
+                if (match.Success && matchedByName.HasValue)
+                {
+                    var argNameOrId = match.Groups[matchedByName == true ? "name" : "id"].Value;
+                    var hasValue = match.Groups["value"].Success;
+
+                    argument = Arguments.FirstOrDefault(a =>
+                        ((hasValue && a.Type == ArgumentType.Option) || (!hasValue && a.Type == ArgumentType.Switch))
+                        && ((matchedByName.Value && a.Name == argNameOrId) || (!matchedByName.Value && a.Identifier == argNameOrId)));
 
                     if (argument is not null)
                     {
-                        argument.AddValue(value);
+                        argument.AddValue(hasValue ? match.Groups["value"].Value : true);
 
                         argument.PreProcess();
 

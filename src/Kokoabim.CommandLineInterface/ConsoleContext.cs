@@ -4,6 +4,7 @@ public class ConsoleContext
 {
     public IReadOnlyList<ConsoleArgument> Arguments => _consoleAppCommand.Arguments;
     public CancellationToken CancellationToken { get; }
+    public IConsoleEvents Events { get; }
     public string HelpText => _consoleAppCommand.HelpText();
 
     /// <summary>
@@ -13,77 +14,122 @@ public class ConsoleContext
 
     private readonly IConsoleAppCommand _consoleAppCommand;
 
-    public ConsoleContext(IConsoleAppCommand consoleAppCommand, CancellationToken cancellationToken)
+    public ConsoleContext(IConsoleAppCommand consoleAppCommand, IConsoleEvents consoleEvents, CancellationToken cancellationToken)
     {
         _consoleAppCommand = consoleAppCommand;
         CancellationToken = cancellationToken;
+        Events = consoleEvents;
     }
 
     #region methods
 
     /// <summary>
-    /// Gets the positional argument with the specified name. If the argument is not found, throws an exception.
+    /// Gets the positional argument with the specified name.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public ConsoleArgument Get(string name) =>
         Arguments.FirstOrDefault(a => a.Name == name && a.Type == ArgumentType.Positional)
         ?? throw new ArgumentException($"Argument '{name}' not found");
 
     /// <summary>
-    /// Gets the positional argument with the specified index. If the argument is not found, throws an exception.
+    /// Gets the positional argument with the specified index.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public ConsoleArgument Get(int index) =>
         Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional)
         ?? throw new ArgumentException($"Argument at index {index} not found");
 
+    /// <summary>
+    /// Gets the option argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public ConsoleArgument GetOption(string identifier, bool compareName = false) =>
         Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option)
         ?? throw new ArgumentException($"Option '{identifier}' not found");
 
+    /// <summary>
+    /// Gets the option argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
     public ConsoleArgument? GetOptionOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option);
 
+    /// <summary>
+    /// Gets the value of the option argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public object GetOptionValue(string identifier, bool compareName = false) => GetOption(identifier, compareName).GetValue();
 
     public object? GetOptionValueOrDefault(string identifier, bool compareName = false) => GetOptionOrDefault(identifier, compareName)?.GetValueOrNull();
 
     /// <summary>
-    /// Gets the positional argument with the specified name. If the argument is not found, returns null.
+    /// Gets the positional argument with the specified name.
     /// </summary>
     public ConsoleArgument? GetOrDefault(string name) => Arguments.FirstOrDefault(a => a.Name == name && a.Type == ArgumentType.Positional);
 
     /// <summary>
-    /// Gets the positional argument with the specified index. If the argument is not found, returns null.
+    /// Gets the positional argument with the specified index.
     /// </summary>
     public ConsoleArgument? GetOrDefault(int index) => Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional);
 
+    /// <summary>
+    /// Gets the switch argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public ConsoleArgument GetSwitch(string identifier, bool compareName = false) =>
         Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch)
         ?? throw new ArgumentException($"Switch '{identifier}' not found");
 
+    /// <summary>
+    /// Gets the switch argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
     public ConsoleArgument? GetSwitchOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch);
 
+    /// <summary>
+    /// Gets the value of the switch argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public object GetSwitchValue(string identifier, bool compareName = false) => GetSwitch(identifier, compareName).GetType();
 
+    /// <summary>
+    /// Gets the value of the switch argument with the specified identifier.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
     public object? GetSwitchValueOrDefault(string identifier, bool compareName = false) => GetSwitchOrDefault(identifier, compareName)?.GetValueOrNull();
 
     /// <summary>
-    /// Gets the value of the positional argument with the specified name. If the argument or its value is not found, throws an exception.
+    /// Gets the value of the positional argument with the specified name.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public object GetValue(string name) => Get(name).GetValue();
 
     /// <summary>
-    /// Gets the value of the positional argument with the specified index. If the argument or its value is not found, throws an exception.
+    /// Gets the value of the positional argument with the specified index.
     /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
     public object GetValue(int index) => Get(index).GetValue();
 
     /// <summary>
-    /// Gets the value of the positional argument with the specified name. If the argument is not found, returns null.
+    /// Gets the value of the positional argument with the specified name.
     /// </summary>
     public object? GetValueOrDefault(string name) => GetOrDefault(name)?.GetValueOrNull();
 
     /// <summary>
-    /// Gets the value of the positional argument with the specified index. If the argument is not found, returns null.
+    /// Gets the value of the positional argument with the specified index.
     /// </summary>
     public object? GetValueOrDefault(int index) => GetOrDefault(index)?.GetValueOrNull();
+
+    /// <summary>
+    /// Returns true if the switch argument with the specified identifier exists and has a value of true.
+    /// </summary>
+    /// <param name="compareName">If true, also compares the argument name.</param>
+    public bool HasSwitch(string identifier, bool compareName = false) =>
+        GetSwitchValueOrDefault(identifier, compareName) is bool b && b;
 
     #endregion 
 }

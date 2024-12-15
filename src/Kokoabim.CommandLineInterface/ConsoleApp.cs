@@ -2,7 +2,7 @@ using System.Text;
 
 namespace Kokoabim.CommandLineInterface;
 
-public interface IConsoleApp : IConsoleAppCommand
+public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 {
     IEnumerable<ConsoleCommand> Commands { get; }
     string Version { get; set; }
@@ -15,9 +15,30 @@ public interface IConsoleApp : IConsoleAppCommand
     Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default);
 }
 
+public interface IConsoleEvents
+{
+    /// <summary>
+    /// Indicates whether to handle the cancel event (Ctrl+C). Default is true.
+    /// </summary>
+    bool HandleCancelEvent { get; set; }
+
+    /// <summary>
+    /// Event handler for the cancel event (Ctrl+C). Returning true allows the console app to perform the default action; returning false prevents the default action.
+    /// </summary>
+    Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
+
+    /// <summary>
+    /// Event handler for the terminate event (Ctrl+C pressed twice). Returning true allows the console app to perform the default action; returning false prevents the default action.
+    /// </summary>
+    Func<bool>? OnTerminate { get; set; }
+}
+
 public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 {
     public IEnumerable<ConsoleCommand> Commands => _commands;
+    public bool HandleCancelEvent { get; set; } = true;
+    public Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
+    public Func<bool>? OnTerminate { get; set; }
     public string Version { get; set; }
 
     private int _cancelEventCount = 0;
@@ -188,17 +209,22 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 
     private void ConsoleCancelEventHandler(object? sender, ConsoleCancelEventArgs e)
     {
+        if (!HandleCancelEvent) return;
+
         if (++_cancelEventCount > 1)
         {
+            if (OnTerminate?.Invoke() == false) return;
+
             Console.Error.WriteLine("Terminating...");
             Environment.Exit(1);
         }
 
-        Console.Error.WriteLine("Canceling...");
-
-        _cancellationTokenSource?.Cancel();
-
         e.Cancel = true;
+
+        if (OnCancel?.Invoke(e) == false) return;
+
+        Console.Error.WriteLine("Canceling...");
+        _cancellationTokenSource?.Cancel();
     }
 
     private bool ProcessCommandsArguments(string[] args)
@@ -238,7 +264,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     {
         if (_command is null) throw new InvalidOperationException("Command not set");
 
-        return await _command!.RunFunctionAsync(cancellationToken);
+        return await _command!.RunFunctionAsync(this, cancellationToken);
     }
 
     private async Task<int> RunWithArgumentsAsync(CancellationToken cancellationToken = default)
@@ -247,7 +273,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 
         try
         {
-            var context = new ConsoleContext(this, cancellationToken);
+            var context = new ConsoleContext(this, this, cancellationToken);
             return AsyncFunction is not null ? await AsyncFunction(context) : SyncFunction!(context);
         }
         catch (Exception ex)
