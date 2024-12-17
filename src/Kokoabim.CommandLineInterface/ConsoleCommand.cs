@@ -44,7 +44,7 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Unhandled command error: {ex.Message}");
+            Console.Error.WriteLine($"Unhandled command error {ex.GetType().Name}: {ex.Message}");
             return 1;
         }
     }

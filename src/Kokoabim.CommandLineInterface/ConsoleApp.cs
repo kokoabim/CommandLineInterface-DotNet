@@ -186,7 +186,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Unhandled error: {ex.Message}");
+            Console.Error.WriteLine($"Unhandled error {ex.GetType().Name}: {ex.Message}");
         }
 
         return 1;
@@ -278,7 +278,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Unhandled console error: {ex.Message}");
+            Console.Error.WriteLine($"Unhandled console error {ex.GetType().Name}: {ex.Message}");
             return 1;
         }
     }
