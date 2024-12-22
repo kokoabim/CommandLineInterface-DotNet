@@ -44,7 +44,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Bad arguments:\n yourName - The name of the user - NotEmptyOrWhiteSpace\n", debugWriter.Output);
+        Assert.Equal("Bad arguments:\n yourName - The name of the user - MustNotBeEmptyOrWhiteSpace: \n", debugWriter.Output);
     }
 
     [Fact]

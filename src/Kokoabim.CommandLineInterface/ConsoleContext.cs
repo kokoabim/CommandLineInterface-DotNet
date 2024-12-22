@@ -27,41 +27,64 @@ public class ConsoleContext
     /// Gets the positional argument with the specified name.
     /// </summary>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public ConsoleArgument Get(string name) =>
-        Arguments.FirstOrDefault(a => a.Name == name && a.Type == ArgumentType.Positional)
-        ?? throw new ArgumentException($"Argument '{name}' not found");
+    public ConsoleArgument Get(string name) => Arguments.FirstOrDefault(a => a.Name == name && a.Type == ArgumentType.Positional) ?? throw new ArgumentException($"Argument '{name}' not found");
 
     /// <summary>
     /// Gets the positional argument with the specified index.
     /// </summary>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public ConsoleArgument Get(int index) =>
-        Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional)
-        ?? throw new ArgumentException($"Argument at index {index} not found");
+    public ConsoleArgument Get(int index) => Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional) ?? throw new ArgumentException($"Argument at index {index} not found");
 
     /// <summary>
-    /// Gets the option argument with the specified identifier.
+    /// Gets the value as a integer of the positional argument with the specified name.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public ConsoleArgument GetOption(string identifier, bool compareName = false) =>
-        Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option)
-        ?? throw new ArgumentException($"Option '{identifier}' not found");
+    public int GetInt(string name) => Get(name).AsInt();
 
     /// <summary>
-    /// Gets the option argument with the specified identifier.
+    /// Gets the option argument with the specified name.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
-    public ConsoleArgument? GetOptionOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Option);
-
-    /// <summary>
-    /// Gets the value of the option argument with the specified identifier.
-    /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public object GetOptionValue(string identifier, bool compareName = false) => GetOption(identifier, compareName).GetValue();
+    public ConsoleArgument GetOption(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Option) ?? throw new ArgumentException($"Option '{name}' not found");
 
-    public object? GetOptionValueOrDefault(string identifier, bool compareName = false) => GetOptionOrDefault(identifier, compareName)?.GetValueOrNull();
+    /// <summary>
+    /// Gets the value as an integer of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
+    public int GetOptionInt(string name, bool compareId = false) => GetOption(name, compareId).AsInt();
+
+    /// <summary>
+    /// Gets the value as an integer of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public int? GetOptionIntOrDefault(string name, bool compareId = false) => GetOptionOrDefault(name, compareId)?.AsInt();
+
+    /// <summary>
+    /// Gets the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public ConsoleArgument? GetOptionOrDefault(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Option);
+
+    /// <summary>
+    /// Gets the values as a string array of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public string[] GetOptionStrings(string name, bool compareId = false) => GetOptionOrDefault(name, compareId)?.Values.Cast<string>().ToArray() ?? [];
+
+    /// <summary>
+    /// Gets the value of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
+    public object GetOptionValue(string name, bool compareId = false) => GetOption(name, compareId).GetValue();
+
+    /// <summary>
+    /// Gets the value of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public object? GetOptionValueOrDefault(string name, bool compareId = false) => GetOptionOrDefault(name, compareId)?.GetValueOrDefault();
 
     /// <summary>
     /// Gets the positional argument with the specified name.
@@ -74,33 +97,41 @@ public class ConsoleContext
     public ConsoleArgument? GetOrDefault(int index) => Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional);
 
     /// <summary>
-    /// Gets the switch argument with the specified identifier.
+    /// Gets the value as a string of the positional argument with the specified name.
     /// </summary>
-    /// <param name="compareName"></param>
-    /// <returns></returns>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public ConsoleArgument GetSwitch(string identifier, bool compareName = false) =>
-        Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch)
-        ?? throw new ArgumentException($"Switch '{identifier}' not found");
+    public string GetString(string name) => Get(name).AsString();
 
     /// <summary>
-    /// Gets the switch argument with the specified identifier.
+    /// Gets the value as a string of the positional argument with the specified name.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
-    public ConsoleArgument? GetSwitchOrDefault(string identifier, bool compareName = false) => Arguments.FirstOrDefault(a => (a.Identifier == identifier || (compareName && a.Name == identifier)) && a.Type == ArgumentType.Switch);
+    public string? GetStringOrDefault(string name) => GetOrDefault(name)?.GetValueOrDefault()?.ToString();
 
     /// <summary>
-    /// Gets the value of the switch argument with the specified identifier.
+    /// Gets the switch argument with the specified name.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
-    public object GetSwitchValue(string identifier, bool compareName = false) => GetSwitch(identifier, compareName).GetType();
+    public ConsoleArgument GetSwitch(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Switch) ?? throw new ArgumentException($"Switch '{name}' not found");
 
     /// <summary>
-    /// Gets the value of the switch argument with the specified identifier.
+    /// Gets the switch argument with the specified name.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
-    public object? GetSwitchValueOrDefault(string identifier, bool compareName = false) => GetSwitchOrDefault(identifier, compareName)?.GetValueOrNull();
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public ConsoleArgument? GetSwitchOrDefault(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Switch);
+
+    /// <summary>
+    /// Gets the value of the switch argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
+    public object GetSwitchValue(string name, bool compareId = false) => GetSwitch(name, compareId).GetType();
+
+    /// <summary>
+    /// Gets the value of the switch argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public object? GetSwitchValueOrDefault(string name, bool compareId = false) => GetSwitchOrDefault(name, compareId)?.GetValueOrDefault();
 
     /// <summary>
     /// Gets the value of the positional argument with the specified name.
@@ -117,19 +148,18 @@ public class ConsoleContext
     /// <summary>
     /// Gets the value of the positional argument with the specified name.
     /// </summary>
-    public object? GetValueOrDefault(string name) => GetOrDefault(name)?.GetValueOrNull();
+    public object? GetValueOrDefault(string name) => GetOrDefault(name)?.GetValueOrDefault();
 
     /// <summary>
     /// Gets the value of the positional argument with the specified index.
     /// </summary>
-    public object? GetValueOrDefault(int index) => GetOrDefault(index)?.GetValueOrNull();
+    public object? GetValueOrDefault(int index) => GetOrDefault(index)?.GetValueOrDefault();
 
     /// <summary>
-    /// Returns true if the switch argument with the specified identifier exists and has a value of true.
+    /// Returns true if the switch argument with the specified name exists and has a value of true.
     /// </summary>
-    /// <param name="compareName">If true, also compares the argument name.</param>
-    public bool HasSwitch(string identifier, bool compareName = false) =>
-        GetSwitchValueOrDefault(identifier, compareName) is bool b && b;
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public bool HasSwitch(string name, bool compareId = false) => GetSwitchValueOrDefault(name, compareId) is bool b && b;
 
     #endregion 
 }

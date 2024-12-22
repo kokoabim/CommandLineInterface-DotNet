@@ -5,4 +5,5 @@ public enum ArgumentPreProcesses
 {
     None = 0,
     ExpandEnvironmentVariables = 1 << 0,
+    GetFullPath = 1 << 1,
 }

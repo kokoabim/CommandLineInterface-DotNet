@@ -14,7 +14,7 @@ public class ConsoleArgument
     public ArgumentConstraints Constraints { get; set; }
     public Action<ConsoleArgument>? CustomPreProcess { get; set; }
     public object? DefaultValue { get; set; }
-    public bool Exists => GetValueOrNull() is not null;
+    public bool Exists => GetValueOrDefault() is not null;
     public bool HasMultipleValues => _values.Count > 1;
     public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
@@ -94,26 +94,26 @@ public class ConsoleArgument
 
     public int AsInt() => int.Parse(AsString());
 
-    public string AsString() => GetValueOrNull()!.ToString()!;
+    public string AsString() => GetValueOrDefault()!.ToString()!;
 
     public bool CheckConstraints() => Constraints switch
     {
         ArgumentConstraints.None => true,
 
-        ArgumentConstraints.MustNotBeEmpty => GetValueOrNull() is string s && !string.IsNullOrEmpty(s),
-        ArgumentConstraints.MustNotBeWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
-        ArgumentConstraints.MustNotBeEmptyOrWhiteSpace => GetValueOrNull() is string s && !string.IsNullOrWhiteSpace(s),
+        ArgumentConstraints.MustNotBeEmpty => GetValueOrDefault() is string s && !string.IsNullOrEmpty(s),
+        ArgumentConstraints.MustNotBeWhiteSpace => GetValueOrDefault() is string s && !string.IsNullOrWhiteSpace(s),
+        ArgumentConstraints.MustNotBeEmptyOrWhiteSpace => GetValueOrDefault() is string s && !string.IsNullOrWhiteSpace(s),
 
-        ArgumentConstraints.MustBeInteger => GetValueOrNull() is var o && o is int || int.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.MustBeDouble => GetValueOrNull() is var o && o is double || double.TryParse(GetValueOrNull() as string, out _),
-        ArgumentConstraints.MustBeBoolean => GetValueOrNull() is var o && o is bool || bool.TryParse(GetValueOrNull() as string, out _),
+        ArgumentConstraints.MustBeInteger => GetValueOrDefault() is var o && o is int || int.TryParse(GetValueOrDefault() as string, out _),
+        ArgumentConstraints.MustBeDouble => GetValueOrDefault() is var o && o is double || double.TryParse(GetValueOrDefault() as string, out _),
+        ArgumentConstraints.MustBeBoolean => GetValueOrDefault() is var o && o is bool || bool.TryParse(GetValueOrDefault() as string, out _),
 
-        ArgumentConstraints.FileMustExist => GetValueOrNull() is string s && File.Exists(s),
-        ArgumentConstraints.FileMustNotExist => GetValueOrNull() is string s && !File.Exists(s),
-        ArgumentConstraints.DirectoryMustExist => GetValueOrNull() is string s && Directory.Exists(s),
-        ArgumentConstraints.DirectoryMustNotExist => GetValueOrNull() is string s && !Directory.Exists(s),
+        ArgumentConstraints.FileMustExist => GetValueOrDefault() is string s && File.Exists(s),
+        ArgumentConstraints.FileMustNotExist => GetValueOrDefault() is string s && !File.Exists(s),
+        ArgumentConstraints.DirectoryMustExist => GetValueOrDefault() is string s && Directory.Exists(s),
+        ArgumentConstraints.DirectoryMustNotExist => GetValueOrDefault() is string s && !Directory.Exists(s),
 
-        ArgumentConstraints.MustBeUrl => GetValueOrNull() is string s && Uri.TryCreate(s, UriKind.Absolute, out _),
+        ArgumentConstraints.MustBeUrl => GetValueOrDefault() is string s && Uri.TryCreate(s, UriKind.Absolute, out _),
 
         _ => throw new ArgumentOutOfRangeException(nameof(Constraints))
     };
@@ -126,23 +126,30 @@ public class ConsoleArgument
     /// <exception cref="ArgumentNullException">Thrown when the value is null and the default value is null.</exception>
     public object GetValue() => Value ?? DefaultValue ?? throw new ArgumentNullException(nameof(Value));
 
-    public object? GetValueOrNull() => Value ?? DefaultValue;
+    public object? GetValueOrDefault() => Value ?? DefaultValue;
 
     public void PreProcess()
     {
         if (PreProcesses.HasFlag(ArgumentPreProcesses.ExpandEnvironmentVariables))
         {
-            for (int i = 0; i < _values.Count; i++)
+            for (int i = 0; i < _values.Count; i++) if (_values[i] is string s)
             {
-                if (_values[i] is string s) _values[i] = Environment.ExpandEnvironmentVariables(s);
+                _values[i] = Environment.ExpandEnvironmentVariables(s).Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
             }
 
-            if (DefaultValue is string dv) DefaultValue = Environment.ExpandEnvironmentVariables(dv);
+            if (DefaultValue is string dv) DefaultValue = Environment.ExpandEnvironmentVariables(dv).Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        }
+
+        if (PreProcesses.HasFlag(ArgumentPreProcesses.GetFullPath))
+        {
+            for (int i = 0; i < _values.Count; i++) if (_values[i] is string s) _values[i] = Path.GetFullPath(s);
+
+            if (DefaultValue is string dv) DefaultValue = Path.GetFullPath(dv);
         }
 
         if (CustomPreProcess is not null) CustomPreProcess(this);
     }
 
-    public override string? ToString() => GetValueOrNull()?.ToString();
+    public override string? ToString() => GetValueOrDefault()?.ToString();
     #endregion 
 }

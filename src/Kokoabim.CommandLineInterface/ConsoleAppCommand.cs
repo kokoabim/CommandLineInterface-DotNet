@@ -114,7 +114,7 @@ public abstract class ConsoleAppCommand
             {
                 showHelpText = false;
                 Console.Error.WriteLine("Bad arguments:");
-                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}: {arg.GetValueOrNull() ?? "(null)"}");
+                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}: {arg.GetValueOrDefault() ?? "(null)"}");
             }
 
             if (missingArguments.Any())
