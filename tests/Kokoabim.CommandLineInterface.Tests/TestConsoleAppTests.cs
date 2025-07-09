@@ -29,7 +29,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Missing required arguments:\n yourName - The name of the user\n", debugWriter.Output);
+        Assert.Equal("Missing required arguments (use --help switch to view help):\n yourName - The name of the user\n", debugWriter.Output);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Missing required arguments:\n number - The number to double\n", debugWriter.Output);
+        Assert.Equal("Missing required arguments (use --help switch to view help):\n number - The number to double\n", debugWriter.Output);
     }
 
     [Fact]

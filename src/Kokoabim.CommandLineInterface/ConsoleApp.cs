@@ -15,24 +15,6 @@ public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
     Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default);
 }
 
-public interface IConsoleEvents
-{
-    /// <summary>
-    /// Indicates whether to handle the cancel event (Ctrl+C). Default is true.
-    /// </summary>
-    bool HandleCancelEvent { get; set; }
-
-    /// <summary>
-    /// Event handler for the cancel event (Ctrl+C). Returning true allows the console app to perform the default action; returning false prevents the default action.
-    /// </summary>
-    Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
-
-    /// <summary>
-    /// Event handler for the terminate event (Ctrl+C pressed twice). Returning true allows the console app to perform the default action; returning false prevents the default action.
-    /// </summary>
-    Func<bool>? OnTerminate { get; set; }
-}
-
 public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 {
     public IEnumerable<ConsoleCommand> Commands => _commands;
@@ -180,7 +162,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         {
             if (ProcessArguments(args)) return await RunFunctionAsync(cancellationToken);
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             Console.Error.WriteLine("Unhandled task cancellation");
         }

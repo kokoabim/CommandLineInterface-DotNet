@@ -50,25 +50,25 @@ public abstract class ConsoleAppCommand
 
     protected void AddArgumentsToHelpText(StringBuilder sb)
     {
-        var switches = Arguments.Where(a => a.Type == ArgumentType.Switch);
+        var switches = Arguments.Where(static a => a.Type == ArgumentType.Switch);
         if (switches.Any())
         {
-            sb.AppendLine("\nSwitches:");
-            foreach (var arg in switches) sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
+            _ = sb.AppendLine("\nSwitches:");
+            foreach (var arg in switches) _ = sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
         }
 
-        var options = Arguments.Where(a => a.Type == ArgumentType.Option);
+        var options = Arguments.Where(static a => a.Type == ArgumentType.Option);
         if (options.Any())
         {
-            sb.AppendLine("\nOptions:");
-            foreach (var arg in options) sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
+            _ = sb.AppendLine("\nOptions:");
+            foreach (var arg in options) _ = sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
         }
 
-        var positionals = Arguments.Where(a => a.Type == ArgumentType.Positional);
+        var positionals = Arguments.Where(static a => a.Type == ArgumentType.Positional);
         if (positionals.Any())
         {
-            sb.AppendLine("\nArguments:");
-            foreach (var arg in positionals.OrderBy(a => a.Index)) sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
+            _ = sb.AppendLine("\nArguments:");
+            foreach (var arg in positionals.OrderBy(static a => a.Index)) _ = sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
         }
     }
 
@@ -93,9 +93,9 @@ public abstract class ConsoleAppCommand
         else if (!Arguments.Any()) return null;
 
         var sb = new StringBuilder();
-        foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Switch && !a.HideInArgumentsUseText)) sb.Append(arg.ArgumentUseText).Append(' ');
-        foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Option && !a.HideInArgumentsUseText)) sb.Append(arg.ArgumentUseText).Append(' ');
-        foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Positional).OrderBy(a => a.Index)) sb.Append($"{(arg.IsRequired ? "" : "[")}{arg.ArgumentUseText}{(arg.IsRequired ? "" : "]")}").Append(' ');
+        foreach (var arg in Arguments.Where(static a => a.Type == ArgumentType.Switch && !a.HideInArgumentsUseText)) _ = sb.Append(arg.ArgumentUseText).Append(' ');
+        foreach (var arg in Arguments.Where(static a => a.Type == ArgumentType.Option && !a.HideInArgumentsUseText)) _ = sb.Append(arg.ArgumentUseText).Append(' ');
+        foreach (var arg in Arguments.Where(static a => a.Type == ArgumentType.Positional).OrderBy(static a => a.Index)) _ = sb.Append($"{(arg.IsRequired ? "" : "[")}{arg.ArgumentUseText}{(arg.IsRequired ? "" : "]")}").Append(' ');
         return sb.Length > 0 ? sb.ToString()[..^1] : null;
     }
 
@@ -120,7 +120,7 @@ public abstract class ConsoleAppCommand
             if (missingArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine("Missing required arguments:");
+                Console.Error.WriteLine("Missing required arguments (use --help switch to view help):");
                 foreach (var arg in missingArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText}");
             }
 

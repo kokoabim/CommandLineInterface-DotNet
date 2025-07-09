@@ -68,6 +68,13 @@ public class ConsoleContext
     public ConsoleArgument? GetOptionOrDefault(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Option);
 
     /// <summary>
+    /// Gets the value as a string of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
+    public string GetOptionString(string name, bool compareId = false) => GetOption(name, compareId).AsString();
+
+    /// <summary>
     /// Gets the values as a string array of the option argument with the specified name.
     /// </summary>
     /// <param name="compareId">If true, also compares the argument ID.</param>
