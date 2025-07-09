@@ -113,7 +113,7 @@ public abstract class ConsoleAppCommand
             if (badArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine("Bad arguments:");
+                Console.Error.WriteLine("Bad arguments (use --help switch to view help):");
                 foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}: {arg.GetValueOrDefault() ?? "(null)"}");
             }
 
@@ -127,7 +127,7 @@ public abstract class ConsoleAppCommand
             if (unknownArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine($"Unknown arguments: {string.Join(", ", unknownArguments)}");
+                Console.Error.WriteLine($"Unknown arguments (use --help switch to view help): {string.Join(", ", unknownArguments)}");
             }
 
             if (showHelpText) Console.WriteLine(HelpText());

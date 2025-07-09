@@ -125,7 +125,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     {
         var sb = new StringBuilder();
 
-        if (TitleText is not null) sb.AppendLine(TitleText);
+        if (TitleText is not null) sb.AppendLine($"{TitleText} (v{Version})");
         sb.AppendLine($"Usage: {CommandUseText}");
 
         if (_isCommandBased && Commands.Any())
@@ -158,6 +158,18 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     /// </summary>
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default)
     {
+        if (DoesSwitchExist("version", args))
+        {
+            Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
+            return 0;
+        }
+
+        if (DoesSwitchExist("help", args))
+        {
+            Console.WriteLine(HelpText());
+            return 0;
+        }
+
         try
         {
             if (ProcessArguments(args)) return await RunFunctionAsync(cancellationToken);
@@ -218,12 +230,10 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         }
         else if ((_command = Commands.FirstOrDefault(c => c.Name == args[0])) == null)
         {
-            if (DoesSwitchExist("help", args)) Console.WriteLine(HelpText());
-            else Console.Error.WriteLine($"Unknown command: {args[0]}");
-
+            Console.Error.WriteLine($"Unknown command: {args[0]}");
             return false;
         }
-        else if (!_command.ProcessArguments(args.Skip(1).ToArray()))
+        else if (!_command.ProcessArguments([.. args.Skip(1)]))
         {
             return false;
         }
@@ -231,16 +241,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         return true;
     }
 
-    private bool ProcessConsoleAppArguments(string[] args)
-    {
-        if (DoesSwitchExist("version", args))
-        {
-            Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
-            return false;
-        }
-
-        return ProcessCliArguments(args);
-    }
+    private bool ProcessConsoleAppArguments(string[] args) => ProcessCliArguments(args);
 
     private async Task<int> RunCommandAsync(CancellationToken cancellationToken = default)
     {
