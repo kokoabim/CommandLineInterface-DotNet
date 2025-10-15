@@ -4,7 +4,7 @@ namespace Kokoabim.CommandLineInterface;
 
 public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 {
-    IEnumerable<ConsoleCommand> Commands { get; }
+    IReadOnlyList<ConsoleCommand> Commands { get; }
     string Version { get; set; }
 
     void AddCommand(ConsoleCommand command);
@@ -17,7 +17,7 @@ public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 
 public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 {
-    public IEnumerable<ConsoleCommand> Commands => _commands;
+    public IReadOnlyList<ConsoleCommand> Commands => InternalCommands;
     public bool HandleCancelEvent { get; set; } = true;
     public Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
     public Func<bool>? OnTerminate { get; set; }
@@ -69,13 +69,13 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     public void AddCommand(ConsoleCommand command)
     {
         _isCommandBased = true;
-        _commands.Add(command);
+        InternalCommands.Add(command);
     }
 
     public void AddCommands(IEnumerable<ConsoleCommand> commands)
     {
         _isCommandBased = true;
-        _commands.AddRange(commands);
+        InternalCommands.AddRange(commands);
     }
 
     public static bool GetBooleanInput(string message, bool defaultValue = false)
@@ -158,16 +158,40 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     /// </summary>
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default)
     {
-        if (DoesSwitchExist("version", args))
+        if (!_isCommandBased)
         {
-            Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
-            return 0;
-        }
+            if (DoesSwitchExist("version", args))
+            {
+                Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
+                return 0;
+            }
 
-        if (DoesSwitchExist("help", args))
+            if (DoesSwitchExist("help", args))
+            {
+                Console.WriteLine(HelpText());
+                return 0;
+            }
+        }
+        else if (_isCommandBased)
         {
-            Console.WriteLine(HelpText());
-            return 0;
+            if (args.Length == 0)
+            {
+                Console.WriteLine(HelpText());
+                return 1;
+            }
+
+            _command = Commands.FirstOrDefault(c => c.Name == args[0]);
+            if (_command is null)
+            {
+                Console.Error.WriteLine($"Unknown command: {args[0]}");
+                return 1;
+            }
+
+            if (_command.DoesSwitchExist("help", [.. args.Skip(1)]))
+            {
+                Console.WriteLine(_command.HelpText());
+                return 0;
+            }
         }
 
         try
@@ -192,7 +216,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         return _isCommandBased ? ProcessCommandsArguments(args) : ProcessConsoleAppArguments(args);
     }
 
-    internal async Task<int> RunFunctionAsync(CancellationToken cancellationToken = default) // ? TODO: make this internal?
+    internal async Task<int> RunFunctionAsync(CancellationToken cancellationToken = default)
     {
         if (!_hasProcessedCliArguments) throw new InvalidOperationException("Arguments not processed");
 
@@ -221,25 +245,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         _cancellationTokenSource?.Cancel();
     }
 
-    private bool ProcessCommandsArguments(string[] args)
-    {
-        if (args.Length == 0)
-        {
-            Console.WriteLine(HelpText());
-            return false;
-        }
-        else if ((_command = Commands.FirstOrDefault(c => c.Name == args[0])) == null)
-        {
-            Console.Error.WriteLine($"Unknown command: {args[0]}");
-            return false;
-        }
-        else if (!_command.ProcessArguments([.. args.Skip(1)]))
-        {
-            return false;
-        }
-
-        return true;
-    }
+    private bool ProcessCommandsArguments(string[] args) => _command!.ProcessArguments([.. args.Skip(1)]);
 
     private bool ProcessConsoleAppArguments(string[] args) => ProcessCliArguments(args);
 

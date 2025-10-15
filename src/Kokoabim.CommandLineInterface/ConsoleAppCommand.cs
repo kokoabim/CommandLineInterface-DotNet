@@ -28,8 +28,8 @@ public abstract class ConsoleAppCommand
     public string? TitleText { get; set; }
     internal string? ArgumentsUseText => GenerateArgumentsUseText();
     internal string? CommandUseText => $"{Name}{(ArgumentsUseText is not null ? $" {ArgumentsUseText}" : null)}";
+    protected List<ConsoleCommand> InternalCommands { get; set; } = [];
 
-    protected readonly List<ConsoleCommand> _commands = [];
     private readonly List<ConsoleArgument> _arguments = [ConsoleArgument.GlobalHelpSwitch, ConsoleArgument.GlobalVersionSwitch];
     private int _maxPositionalIndex = -1;
     private static readonly Regex _optionOrSwitchIdentifierRegex = new(@"^-(?<id>[^:=-])([:=](?<value>.*))?$", RegexOptions.Compiled);
@@ -47,6 +47,21 @@ public abstract class ConsoleAppCommand
     }
 
     public abstract string HelpText();
+
+    /// <summary>
+    /// Checks if an option exists in the defined arguments (in code) and the arguments passed to the console application.
+    /// </summary>
+    internal bool DoesOptionExist(string identifier, string[] args, [NotNullWhen(true)] out ConsoleArgument? option)
+    {
+        option = args.Any(a => a == "-" + identifier || a == "--" + identifier) ? Arguments.FirstOrDefault(a => a.Type == ArgumentType.Option && a.Identifier == identifier) : null;
+        return option is not null;
+    }
+
+    /// <summary>
+    /// Checks if a switch exists in the defined arguments (in code) and the arguments passed to the console application.
+    /// </summary>
+    internal bool DoesSwitchExist(string identifier, string[] args) =>
+        args.Any(a => a == "-" + identifier || a == "--" + identifier) && Arguments.FirstOrDefault(a => a.Type == ArgumentType.Switch && a.Identifier == identifier) is ConsoleArgument arg;
 
     protected void AddArgumentsToHelpText(StringBuilder sb)
     {
@@ -72,24 +87,9 @@ public abstract class ConsoleAppCommand
         }
     }
 
-    /// <summary>
-    /// Checks if an option exists in the defined arguments (in code) and the arguments passed to the console application.
-    /// </summary>
-    protected bool DoesOptionExist(string identifier, string[] args, [NotNullWhen(true)] out ConsoleArgument? option)
-    {
-        option = args.Any(a => a == "-" + identifier || a == "--" + identifier) ? Arguments.FirstOrDefault(a => a.Type == ArgumentType.Option && a.Identifier == identifier) : null;
-        return option is not null;
-    }
-
-    /// <summary>
-    /// Checks if a switch exists in the defined arguments (in code) and the arguments passed to the console application.
-    /// </summary>
-    protected bool DoesSwitchExist(string identifier, string[] args) =>
-        args.Any(a => a == "-" + identifier || a == "--" + identifier) && Arguments.FirstOrDefault(a => a.Type == ArgumentType.Switch && a.Identifier == identifier) is ConsoleArgument arg;
-
     protected string? GenerateArgumentsUseText()
     {
-        if (_commands.Count > 0) return "command [arguments]";
+        if (InternalCommands.Count > 0) return "command [arguments]";
         else if (!Arguments.Any()) return null;
 
         var sb = new StringBuilder();

@@ -5,11 +5,9 @@ namespace Kokoabim.CommandLineInterface.Tests;
 
 public class DebugWriter : TextWriter
 {
-    #region properties
     public override Encoding Encoding => Encoding.UTF8;
     public string[] Lines => _stringBuilder.ToString().Split('\n');
     public string Output => _stringBuilder.ToString();
-    #endregion 
 
     private readonly StringBuilder _stringBuilder = new();
 

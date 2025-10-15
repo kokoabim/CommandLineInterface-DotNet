@@ -133,9 +133,9 @@ public class ConsoleArgument
         if (PreProcesses.HasFlag(ArgumentPreProcesses.ExpandEnvironmentVariables))
         {
             for (int i = 0; i < _values.Count; i++) if (_values[i] is string s)
-            {
-                _values[i] = Environment.ExpandEnvironmentVariables(s).Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-            }
+                {
+                    _values[i] = Environment.ExpandEnvironmentVariables(s).Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+                }
 
             if (DefaultValue is string dv) DefaultValue = Environment.ExpandEnvironmentVariables(dv).Replace("~", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         }

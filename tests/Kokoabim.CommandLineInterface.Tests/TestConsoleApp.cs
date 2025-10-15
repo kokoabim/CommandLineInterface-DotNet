@@ -2,11 +2,11 @@ namespace Kokoabim.CommandLineInterface.Tests;
 
 public class TestConsoleApp
 {
-    public async Task<int> RunWithArguments(string[] args)
+    public async Task<int> RunWithArgumentsAsync(string[] args)
     {
         var consoleApp = new ConsoleApp(
             [new ConsoleArgument("yourName", isRequired: true, constraints: ArgumentConstraints.MustNotBeEmptyOrWhiteSpace, helpText: "The name of the user")],
-            titleText: $"{nameof(TestConsoleApp)}.{nameof(RunWithArguments)}",
+            titleText: $"{nameof(TestConsoleApp)}.{nameof(RunWithArgumentsAsync)}",
             syncFunction: context =>
             {
                 var yourName = context.GetValueOrDefault("yourName")!;
@@ -18,7 +18,7 @@ public class TestConsoleApp
         return await consoleApp.RunAsync(args);
     }
 
-    public async Task<int> RunWithDoubleNumberCommand(string[] args)
+    public async Task<int> RunWithDoubleNumberCommandAsync(string[] args)
     {
         var consoleApp = new ConsoleApp([
             new ConsoleCommand("double", titleText: "Double a number", arguments: [new ConsoleArgument("number", isRequired: true, helpText: "The number to double")], syncFunction: context =>
@@ -28,7 +28,7 @@ public class TestConsoleApp
                 return 0;
             }),
         ],
-        titleText: $"{nameof(TestConsoleApp)}.{nameof(RunWithDoubleNumberCommand)}");
+        titleText: $"{nameof(TestConsoleApp)}.{nameof(RunWithDoubleNumberCommandAsync)}");
 
         return await consoleApp.RunAsync(args);
     }
