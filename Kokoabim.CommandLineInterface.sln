@@ -11,26 +11,61 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B3B6BED4-D4F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kokoabim.CommandLineInterface", "src\Kokoabim.CommandLineInterface\Kokoabim.CommandLineInterface.csproj", "{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kokoabim.CommandLineInterface.AppHost", "src\Kokoabim.CommandLineInterface.AppHost\Kokoabim.CommandLineInterface.AppHost.csproj", "{306C5055-0900-4964-B981-A3CD15DAF944}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|x64.Build.0 = Debug|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Debug|x86.Build.0 = Debug|Any CPU
 		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|x64.ActiveCfg = Release|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|x64.Build.0 = Release|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|x86.ActiveCfg = Release|Any CPU
+		{7D3F42BD-14FB-43E7-B3E9-9367735FE985}.Release|x86.Build.0 = Release|Any CPU
 		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|x64.Build.0 = Debug|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Debug|x86.Build.0 = Debug|Any CPU
 		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|x64.ActiveCfg = Release|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|x64.Build.0 = Release|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|x86.ActiveCfg = Release|Any CPU
+		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930}.Release|x86.Build.0 = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|x64.Build.0 = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Debug|x86.Build.0 = Debug|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|Any CPU.Build.0 = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|x64.ActiveCfg = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|x64.Build.0 = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|x86.ActiveCfg = Release|Any CPU
+		{306C5055-0900-4964-B981-A3CD15DAF944}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7D3F42BD-14FB-43E7-B3E9-9367735FE985} = {4A65DE3B-8B1D-491F-B871-77B0FA66BCC6}
 		{5D2B7C7C-0AEF-43CC-AA3A-41037F69C930} = {B3B6BED4-D4FF-4CC7-BC08-00C24C6CF8F7}
+		{306C5055-0900-4964-B981-A3CD15DAF944} = {B3B6BED4-D4FF-4CC7-BC08-00C24C6CF8F7}
 	EndGlobalSection
 EndGlobal

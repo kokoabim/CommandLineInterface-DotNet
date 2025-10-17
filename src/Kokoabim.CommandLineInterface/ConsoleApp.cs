@@ -5,6 +5,7 @@ namespace Kokoabim.CommandLineInterface;
 public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 {
     IReadOnlyList<ConsoleCommand> Commands { get; }
+    string? DefaultCommandName { get; set; }
     string Version { get; set; }
 
     void AddCommand(ConsoleCommand command);
@@ -18,6 +19,7 @@ public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 {
     public IReadOnlyList<ConsoleCommand> Commands => InternalCommands;
+    public string? DefaultCommandName { get; set; }
     public bool HandleCancelEvent { get; set; } = true;
     public Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
     public Func<bool>? OnTerminate { get; set; }
@@ -48,8 +50,8 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         IEnumerable<ConsoleArgument> arguments,
         Func<ConsoleContext, Task<int>>? asyncFunction = null,
         Func<ConsoleContext, int>? syncFunction = null,
-        string? titleText = null)
-        : this(titleText)
+        string? titleText = null, string? version = null)
+        : this(titleText, version)
     {
         AddArguments(arguments);
         AsyncFunction = asyncFunction;
@@ -59,7 +61,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     /// <summary>
     /// Create a command-based console application.
     /// </summary>
-    public ConsoleApp(IEnumerable<ConsoleCommand> commands, string? titleText = null) : this(titleText)
+    public ConsoleApp(IEnumerable<ConsoleCommand> commands, string? titleText = null, string? version = null) : this(titleText, version)
     {
         AddCommands(commands);
     }
@@ -158,36 +160,44 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     /// </summary>
     public async Task<int> RunAsync(string[] args, CancellationToken cancellationToken = default)
     {
-        if (!_isCommandBased)
+        if (_isCommandBased)
         {
-            if (DoesSwitchExist("version", args))
+            if (args.Length == 0)
             {
-                Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
-                return 0;
+                if (DefaultCommandName is null)
+                {
+                    Console.WriteLine(HelpText());
+                    return 0;
+                }
+
+                args = [DefaultCommandName];
             }
 
+            _command = Commands.FirstOrDefault(c => c.Name == args[0]);
+        }
+
+        if (!_isCommandBased || _command is null)
+        {
             if (DoesSwitchExist("help", args))
             {
                 Console.WriteLine(HelpText());
                 return 0;
             }
-        }
-        else if (_isCommandBased)
-        {
-            if (args.Length == 0)
+            else if (DoesSwitchExist("version", args))
             {
-                Console.WriteLine(HelpText());
-                return 1;
+                Console.WriteLine($"{Name}{(TitleText is not null ? $" — {TitleText}" : null)} (v{Version})");
+                return 0;
             }
+        }
 
-            _command = Commands.FirstOrDefault(c => c.Name == args[0]);
+        if (_isCommandBased)
+        {
             if (_command is null)
             {
                 Console.Error.WriteLine($"Unknown command: {args[0]}");
                 return 1;
             }
-
-            if (_command.DoesSwitchExist("help", [.. args.Skip(1)]))
+            else if (_command.DoesSwitchExist("help", [.. args.Skip(1)]))
             {
                 Console.WriteLine(_command.HelpText());
                 return 0;

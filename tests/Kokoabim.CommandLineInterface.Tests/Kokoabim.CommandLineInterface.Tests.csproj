@@ -28,6 +28,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Kokoabim.CommandLineInterface\Kokoabim.CommandLineInterface.csproj" />
+        <ProjectReference Include="..\..\src\Kokoabim.CommandLineInterface.AppHost\Kokoabim.CommandLineInterface.AppHost.csproj" />
     </ItemGroup>
 
 </Project>

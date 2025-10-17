@@ -37,14 +37,16 @@ public class ConsoleAppHost : IConsoleAppHost
     private ILoggerFactory? _loggerFactory;
     private IServiceProvider? _serviceProvider;
 
-    public ConsoleAppHost()
+    public ConsoleAppHost() : this("appsettings.json") { }
+
+    public ConsoleAppHost(string jsonFilePath, bool optional = true)
     {
         _hostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((hostContext, config) =>
             {
                 _ = config
                     .SetBasePath(hostContext.HostingEnvironment.ContentRootPath)
-                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .AddJsonFile(jsonFilePath, optional: optional, reloadOnChange: true)
                     .AddEnvironmentVariables();
             })
             .ConfigureServices((hostContext, services) =>
