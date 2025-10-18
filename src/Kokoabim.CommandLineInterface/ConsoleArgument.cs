@@ -52,13 +52,14 @@ public class ConsoleArgument
     };
 
     public ArgumentPreProcesses PreProcesses { get; set; }
+    public bool TopLevelOnly { get; set; }
     public ArgumentType Type { get; set; }
     public object? Value => _values.FirstOrDefault();
     public IReadOnlyList<object> Values => _values;
     #endregion 
 
     public static readonly ConsoleArgument GlobalHelpSwitch = new("help", "help", "Show help", ArgumentType.Switch) { HideInArgumentsUseText = true };
-    public static readonly ConsoleArgument GlobalVersionSwitch = new("version", "version", "Show version", ArgumentType.Switch) { HideInArgumentsUseText = true };
+    public static readonly ConsoleArgument GlobalVersionSwitch = new("version", "version", "Show version", ArgumentType.Switch) { HideInArgumentsUseText = true, TopLevelOnly = true };
     private readonly List<object> _values = [];
 
     public ConsoleArgument(

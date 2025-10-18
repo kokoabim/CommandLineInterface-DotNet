@@ -26,7 +26,7 @@ public class ConsoleCommand : ConsoleAppCommand, IConsoleAppCommand
         if (TitleText is not null) sb.AppendLine(TitleText);
         sb.AppendLine($"Command: {CommandUseText}");
 
-        AddArgumentsToHelpText(sb);
+        AddArgumentsToHelpText(sb, includeTopLevelOnly: false);
 
         return sb.ToString()[..^1];
     }

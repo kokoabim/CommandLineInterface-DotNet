@@ -63,9 +63,9 @@ public abstract class ConsoleAppCommand
     internal bool DoesSwitchExist(string identifier, string[] args) =>
         args.Any(a => a == "-" + identifier || a == "--" + identifier) && Arguments.FirstOrDefault(a => a.Type == ArgumentType.Switch && a.Identifier == identifier) is ConsoleArgument arg;
 
-    protected void AddArgumentsToHelpText(StringBuilder sb)
+    protected void AddArgumentsToHelpText(StringBuilder sb, bool includeTopLevelOnly)
     {
-        var switches = Arguments.Where(static a => a.Type == ArgumentType.Switch);
+        var switches = Arguments.Where(a => a.Type == ArgumentType.Switch && (!a.TopLevelOnly || includeTopLevelOnly));
         if (switches.Any())
         {
             _ = sb.AppendLine("\nSwitches:");

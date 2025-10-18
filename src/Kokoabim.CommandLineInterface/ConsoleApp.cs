@@ -127,29 +127,31 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     {
         var sb = new StringBuilder();
 
-        if (TitleText is not null) sb.AppendLine($"{TitleText} (v{Version})");
-        sb.AppendLine($"Usage: {CommandUseText}");
+        if (TitleText is not null) _ = sb.AppendLine($"{TitleText} (v{Version})");
+        _ = sb.AppendLine($"Usage: {CommandUseText}");
 
         if (_isCommandBased && Commands.Any())
         {
-            sb.AppendLine("\nCommands:");
-            foreach (var cmd in Commands) sb.AppendLine($" {cmd.Name}{(cmd.TitleText is not null ? $" - {cmd.TitleText}" : null)}");
+            _ = sb.AppendLine("\nCommands:");
+            foreach (var cmd in Commands) _ = sb.AppendLine($" {cmd.Name}{(cmd.TitleText is not null ? $" - {cmd.TitleText}" : null)}");
 
-            foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Switch))
+            var switches = Arguments.Where(a => a.Type == ArgumentType.Switch);
+            if (switches.Any())
             {
-                sb.AppendLine("\nSwitches:");
-                sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
+                _ = sb.AppendLine("\nSwitches:");
+                foreach (var arg in switches) _ = sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
             }
 
-            foreach (var arg in Arguments.Where(a => a.Type == ArgumentType.Option))
+            var options = Arguments.Where(a => a.Type == ArgumentType.Option);
+            if (options.Any())
             {
-                sb.AppendLine("\nOptions:");
-                sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
+                _ = sb.AppendLine("\nOptions:");
+                foreach (var arg in options) _ = sb.AppendLine($" {arg.NameIdentifier} - {arg.HelpText}");
             }
         }
         else if (!_isCommandBased && Arguments.Any())
         {
-            AddArgumentsToHelpText(sb);
+            AddArgumentsToHelpText(sb, includeTopLevelOnly: true);
         }
 
         return sb.ToString()[..^1];
