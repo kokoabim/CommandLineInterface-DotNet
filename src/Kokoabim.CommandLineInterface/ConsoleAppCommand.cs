@@ -113,21 +113,24 @@ public abstract class ConsoleAppCommand
             if (badArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine("Bad arguments (use --help switch to view help):");
-                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}: {arg.GetValueOrDefault() ?? "(null)"}");
+                if (badArguments.Count() == 1) Console.Error.Write("Bad argument (use --help switch to view help):");
+                else Console.Error.WriteLine("Bad arguments (use --help switch to view help):");
+
+                foreach (var arg in badArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText} - {arg.Constraints}{(arg.Constraints == ArgumentConstraints.MustConvertToType && arg.ConstraintType is not null ? $" ({arg.ConstraintType.Name})" : "")}: {arg.GetValueOrDefault() ?? "(null)"}");
             }
 
             if (missingArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine("Missing required arguments (use --help switch to view help):");
+                if (missingArguments.Count() == 1) Console.Error.Write("Missing required argument (use --help switch to view help):");
+                else Console.Error.WriteLine("Missing required arguments (use --help switch to view help):");
                 foreach (var arg in missingArguments) Console.Error.WriteLine($" {arg.NameIdentifier} - {arg.HelpText}");
             }
 
             if (unknownArguments.Any())
             {
                 showHelpText = false;
-                Console.Error.WriteLine($"Unknown arguments (use --help switch to view help): {string.Join(", ", unknownArguments)}");
+                Console.Error.WriteLine($"Unknown argument{(unknownArguments.Count() == 1 ? "" : "s")} (use --help switch to view help): {string.Join(", ", unknownArguments)}");
             }
 
             if (showHelpText) Console.WriteLine(HelpText());

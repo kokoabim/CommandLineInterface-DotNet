@@ -49,6 +49,27 @@ public class ConsoleContext
     public ConsoleArgument GetOption(string name, bool compareId = false) => Arguments.FirstOrDefault(a => (a.Name == name || (compareId && a.Identifier == name)) && a.Type == ArgumentType.Option) ?? throw new ArgumentException($"Option '{name}' not found");
 
     /// <summary>
+    /// Gets the value as an enum of the option argument with the specified name.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found or cannot be converted to the specified enum type.</exception>
+    public T GetOptionEnum<T>(string name, bool compareId = false) where T : struct, Enum
+    {
+        var option = GetOption(name, compareId);
+        if (option.GetValueOrDefault() is string s && Enum.TryParse<T>(s, true, out var result)) return result;
+        throw new ArgumentException($"Option '{name}' value '{option.GetValueOrDefault()}' cannot be converted to enum '{typeof(T).Name}'");
+    }
+
+    /// <summary>
+    /// Gets the value as an enum of the option argument with the specified name.
+    /// </summary>
+    public T GetOptionEnumOrDefault<T>(string name, bool compareId = false) where T : struct, Enum
+    {
+        var option = GetOptionOrDefault(name, compareId);
+        if (option?.GetValueOrDefault() is string s && Enum.TryParse<T>(s, true, out var result)) return result;
+        return default;
+    }
+
+    /// <summary>
     /// Gets the value as an integer of the option argument with the specified name.
     /// </summary>
     /// <param name="compareId">If true, also compares the argument ID.</param>
@@ -79,6 +100,27 @@ public class ConsoleContext
     /// </summary>
     /// <param name="compareId">If true, also compares the argument ID.</param>
     public string[] GetOptionStrings(string name, bool compareId = false) => GetOptionOrDefault(name, compareId)?.Values.Cast<string>().ToArray() ?? [];
+
+    /// <summary>
+    /// Gets the value as the specified type of the option argument with the specified name.
+    /// </summary>
+    public T GetOptionType<T>(string name, bool compareId = false)
+    {
+        var option = GetOption(name, compareId);
+        return (T)Convert.ChangeType(option.GetValueOrDefault()!, typeof(T));
+    }
+
+    /// <summary>
+    /// Gets the value as the specified type of the option argument with the specified name.
+    /// </summary>
+    public T? GetOptionTypeOrDefault<T>(string name, bool compareId = false)
+    {
+        var option = GetOptionOrDefault(name, compareId);
+        if (option?.GetValueOrDefault() is null) return default;
+
+        try { return (T)Convert.ChangeType(option.GetValueOrDefault()!, typeof(T)); }
+        catch { return default; }
+    }
 
     /// <summary>
     /// Gets the value of the option argument with the specified name.

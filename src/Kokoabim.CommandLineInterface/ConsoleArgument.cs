@@ -12,6 +12,7 @@ public class ConsoleArgument
     };
 
     public ArgumentConstraints Constraints { get; set; }
+    public Type? ConstraintType { get; set; }
     public Action<ConsoleArgument>? CustomPreProcess { get; set; }
     public object? DefaultValue { get; set; }
     public bool Exists => GetValueOrDefault() is not null;
@@ -71,10 +72,12 @@ public class ConsoleArgument
         ArgumentConstraints constraints = ArgumentConstraints.None,
         object? defaultValue = null,
         ArgumentPreProcesses preProcesses = ArgumentPreProcesses.None,
-        Action<ConsoleArgument>? customPreProcess = null)
+        Action<ConsoleArgument>? customPreProcess = null,
+        Type? constraintType = null)
     {
         DefaultValue = defaultValue;
         Constraints = constraints;
+        ConstraintType = constraintType;
         CustomPreProcess = customPreProcess;
         HelpText = helpText;
         Identifier = identifier ?? "";
@@ -106,6 +109,7 @@ public class ConsoleArgument
         ArgumentConstraints.MustNotBeEmptyOrWhiteSpace => GetValueOrDefault() is string s && !string.IsNullOrWhiteSpace(s),
 
         ArgumentConstraints.MustBeInteger => GetValueOrDefault() is var o && o is int || int.TryParse(GetValueOrDefault() as string, out _),
+        ArgumentConstraints.MustBeUInteger => GetValueOrDefault() is var o && o is uint || uint.TryParse(GetValueOrDefault() as string, out _),
         ArgumentConstraints.MustBeDouble => GetValueOrDefault() is var o && o is double || double.TryParse(GetValueOrDefault() as string, out _),
         ArgumentConstraints.MustBeBoolean => GetValueOrDefault() is var o && o is bool || bool.TryParse(GetValueOrDefault() as string, out _),
 
@@ -115,6 +119,10 @@ public class ConsoleArgument
         ArgumentConstraints.DirectoryMustNotExist => GetValueOrDefault() is string s && !Directory.Exists(s),
 
         ArgumentConstraints.MustBeUrl => GetValueOrDefault() is string s && Uri.TryCreate(s, UriKind.Absolute, out _),
+
+        ArgumentConstraints.MustConvertToType => ConstraintType is not null && GetValueOrDefault() is string s &&
+            ((ConstraintType.IsEnum && Enum.TryParse(ConstraintType, s, true, out _))
+            || (!ConstraintType.IsEnum && Convert.ChangeType(s, ConstraintType) is not null)),
 
         _ => throw new ArgumentOutOfRangeException(nameof(Constraints))
     };
