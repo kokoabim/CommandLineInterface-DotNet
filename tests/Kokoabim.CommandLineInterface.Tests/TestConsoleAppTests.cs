@@ -29,7 +29,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Missing required arguments (use --help switch to view help):\n yourName - The name of the user\n", debugWriter.Output);
+        Assert.Equal("Missing required argument (use --help switch to view help): yourName - The name of the user\n", debugWriter.Output);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Bad arguments (use --help switch to view help):\n yourName - The name of the user - MustNotBeEmptyOrWhiteSpace: \n", debugWriter.Output);
+        Assert.Equal("Bad argument (use --help switch to view help): yourName - The name of the user - MustNotBeEmptyOrWhiteSpace: \n", debugWriter.Output);
     }
 
     [Fact]
@@ -88,8 +88,8 @@ public class TestConsoleAppTests
         var actual = await target.RunWithDoubleNumberCommandAsync([]);
 
         // assert
-        Assert.Equal(1, actual);
-        Assert.Equal("TestConsoleApp.RunWithDoubleNumberCommandAsync (v15.0)\nUsage: testhost command [arguments]\n\nCommands:\n double - Double a number\n\nSwitches:\n help - Show help\n\nSwitches:\n version - Show version\n", debugWriter.Output);
+        Assert.Equal(0, actual);
+        Assert.Equal("TestConsoleApp.RunWithDoubleNumberCommandAsync (v15.0)\nUsage: testhost command [arguments]\n\nCommands:\n double - Double a number\n\nSwitches:\n help - Show help\n version - Show version\n", debugWriter.Output);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(1, actual);
-        Assert.Equal("Missing required arguments (use --help switch to view help):\n number - The number to double\n", debugWriter.Output);
+        Assert.Equal("Missing required argument (use --help switch to view help): number - The number to double\n", debugWriter.Output);
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public class TestConsoleAppTests
 
         // assert
         Assert.Equal(0, actual);
-        Assert.Equal("Double a number\nCommand: double number\n\nSwitches:\n help - Show help\n version - Show version\n\nArguments:\n number - The number to double\n", debugWriter.Output);
+        Assert.Equal("Double a number\nCommand: double number\n\nSwitches:\n help - Show help\n\nArguments:\n number - The number to double\n", debugWriter.Output);
     }
 }
