@@ -98,7 +98,7 @@ public class ConsoleArgument
 
     public int AsInt() => int.Parse(AsString());
 
-    public string AsString() => GetValueOrDefault()!.ToString()!;
+    public string AsString() => GetValueOrDefault()?.ToString() ?? throw new ArgumentException($"Argument {Name} is null");
 
     public bool CheckConstraints() => Constraints switch
     {
