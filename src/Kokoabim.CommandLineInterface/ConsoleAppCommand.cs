@@ -32,6 +32,7 @@ public abstract class ConsoleAppCommand
 
     private readonly List<ConsoleArgument> _arguments = [ConsoleArgument.GlobalHelpSwitch, ConsoleArgument.GlobalVersionSwitch];
     private int _maxPositionalIndex = -1;
+    private static readonly Regex _multipleSwitchIdentifiersRegex = new(@"^-(?<ids>[^:=-]{2,})$", RegexOptions.Compiled);
     private static readonly Regex _optionOrSwitchIdentifierRegex = new(@"^-(?<id>[^:=-])([:=](?<value>.*))?$", RegexOptions.Compiled);
     private static readonly Regex _optionOrSwitchNameRegex = new(@"^--(?<name>[^:=]+)([:=](?<value>.*))?$", RegexOptions.Compiled);
 
@@ -146,12 +147,15 @@ public abstract class ConsoleAppCommand
         var endOfOptionsAndSwitches = false;
         int positionIndex = -1;
 
+        List<string> argsToIterate = [.. args];
         List<ConsoleArgument> badArgs = [];
         List<ConsoleArgument> missingArgs = [];
         List<string> unknownArgs = [];
 
-        foreach (var arg in args)
+        for (int i = 0; i < argsToIterate.Count; i++)
         {
+            var arg = argsToIterate[i];
+
             if (arg == "--")
             {
                 endOfOptionsAndSwitches = true;
@@ -162,23 +166,38 @@ public abstract class ConsoleAppCommand
 
             if (!endOfOptionsAndSwitches && arg.Length > 0 && arg[0] == '-')
             {
-                bool? matchedByName = null;
+                var matchedArgBy = MatchedArgBy.None;
                 var match = _optionOrSwitchNameRegex.Match(arg);
                 if (!match.Success)
                 {
                     match = _optionOrSwitchIdentifierRegex.Match(arg);
-                    if (match.Success) matchedByName = false;
+                    if (match.Success) matchedArgBy = MatchedArgBy.Identifier;
+                    else
+                    {
+                        match = _multipleSwitchIdentifiersRegex.Match(arg);
+                        if (match.Success)
+                        {
+                            matchedArgBy = MatchedArgBy.MultipleIdentifiers;
+                            argsToIterate.AddRange(match.Groups["ids"].Value.ToCharArray().Skip(1).Select(c => $"-{c}"));
+                            arg = arg[..2];
+                        }
+                    }
                 }
-                else matchedByName = true;
+                else matchedArgBy = MatchedArgBy.Name;
 
-                if (match.Success && matchedByName.HasValue)
+                if (match.Success && matchedArgBy != MatchedArgBy.None)
                 {
-                    var argNameOrId = match.Groups[matchedByName == true ? "name" : "id"].Value;
+                    var argNameOrId = matchedArgBy switch
+                    {
+                        MatchedArgBy.Name => match.Groups["name"].Value,
+                        MatchedArgBy.Identifier => match.Groups["id"].Value,
+                        _ => arg[1].ToString(),
+                    };
                     var hasValue = match.Groups["value"].Success;
 
                     argument = Arguments.FirstOrDefault(a =>
                         ((hasValue && a.Type == ArgumentType.Option) || (!hasValue && a.Type == ArgumentType.Switch))
-                        && ((matchedByName.Value && a.Name == argNameOrId) || (!matchedByName.Value && a.Identifier == argNameOrId)));
+                        && ((matchedArgBy == MatchedArgBy.Name && a.Name == argNameOrId) || (matchedArgBy != MatchedArgBy.Name && a.Identifier == argNameOrId)));
 
                     if (argument is not null)
                     {
@@ -242,5 +261,13 @@ public abstract class ConsoleAppCommand
         unknownArguments = unknownArgs;
 
         return !(badArguments.Any() || missingArguments.Any() || unknownArguments.Any());
+    }
+
+    internal enum MatchedArgBy
+    {
+        None,
+        Name,
+        Identifier,
+        MultipleIdentifiers
     }
 }
