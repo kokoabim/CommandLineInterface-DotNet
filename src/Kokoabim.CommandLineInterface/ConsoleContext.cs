@@ -36,6 +36,28 @@ public class ConsoleContext
     public ConsoleArgument Get(int index) => Arguments.FirstOrDefault(a => a.Index == index && a.Type == ArgumentType.Positional) ?? throw new ArgumentException($"Argument at index {index} not found");
 
     /// <summary>
+    /// Gets the value as an enum of the positional argument with the specified name.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown when the argument is not found or cannot be converted to the specified enum type.</exception>
+    /// <returns>The enum value.</returns>
+    public T GetEnum<T>(string name) where T : struct, Enum
+    {
+        var arg = Get(name);
+        if (arg.GetValueOrDefault() is string s && Enum.TryParse<T>(s, true, out var result)) return result;
+        throw new ArgumentException($"Argument '{name}' value '{arg.GetValueOrDefault()}' cannot be converted to enum '{typeof(T).Name}'");
+    }
+
+    /// <summary>
+    /// Gets the value as an enum of the positional argument with the specified name.
+    /// </summary>
+    /// <returns>The enum value or null if the argument is not found or cannot be converted to the specified enum type.</returns>
+    public T? GetEnumOrDefault<T>(string name) where T : struct, Enum
+    {
+        var arg = GetOrDefault(name);
+        return (arg?.GetValueOrDefault() is string s && Enum.TryParse<T>(s, true, out var result)) ? result : null;
+    }
+
+    /// <summary>
     /// Gets the value as a integer of the positional argument with the specified name.
     /// </summary>
     /// <exception cref="ArgumentException">Thrown when the argument is not found.</exception>
