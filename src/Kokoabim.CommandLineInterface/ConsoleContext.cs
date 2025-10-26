@@ -118,6 +118,12 @@ public class ConsoleContext
     public string GetOptionString(string name, bool compareId = false) => GetOption(name, compareId).AsString();
 
     /// <summary>
+    /// Gets the value as a string of the option argument with the specified name.
+    /// </summary>
+    /// <param name="compareId">If true, also compares the argument ID.</param>
+    public string? GetOptionStringOrDefault(string name, bool compareId = false) => GetOptionOrDefault(name, compareId)?.AsStringOrDefault();
+
+    /// <summary>
     /// Gets the values as a string array of the option argument with the specified name.
     /// </summary>
     /// <param name="compareId">If true, also compares the argument ID.</param>
@@ -176,7 +182,7 @@ public class ConsoleContext
     /// <summary>
     /// Gets the value as a string of the positional argument with the specified name.
     /// </summary>
-    public string? GetStringOrDefault(string name) => GetOrDefault(name)?.GetValueOrDefault()?.ToString();
+    public string? GetStringOrDefault(string name) => GetOrDefault(name)?.AsStringOrDefault();
 
     /// <summary>
     /// Gets the switch argument with the specified name.
