@@ -117,6 +117,19 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         return input;
     }
 
+    public static int GetOptionInput(string[] options, string? message = null, int defaultValue = 0)
+    {
+        for (int i = 0; i < options.Length; i++) Console.WriteLine($"{i + 1}. {options[i]}");
+        Console.WriteLine("0. None");
+
+        Console.Write((message is not null ? message : "Select an option") + $": [1-{options.Length}{(defaultValue != 0 ? $", default: {defaultValue}" : "")}] ");
+
+        var input = Console.ReadLine()?.Trim().ToLower();
+        if (string.IsNullOrWhiteSpace(input)) return defaultValue;
+
+        return int.TryParse(input, out var selectedIndex) && selectedIndex >= 0 && selectedIndex <= options.Length ? selectedIndex : 0;
+    }
+
     public static string GetStringInput(string message)
     {
         Console.Write($"{message}: ");
