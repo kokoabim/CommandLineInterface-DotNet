@@ -6,6 +6,7 @@ public interface IConsoleApp : IConsoleEvents, IConsoleAppCommand
 {
     IReadOnlyList<ConsoleCommand> Commands { get; }
     string? DefaultCommandName { get; set; }
+    IEnumerable<ConsoleArgument> GlobalArguments { get; set; }
     string Version { get; set; }
 
     void AddCommand(ConsoleCommand command);
@@ -20,6 +21,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 {
     public IReadOnlyList<ConsoleCommand> Commands => InternalCommands;
     public string? DefaultCommandName { get; set; }
+    public IEnumerable<ConsoleArgument> GlobalArguments { get; set; } = [];
     public bool HandleCancelEvent { get; set; } = true;
     public Func<ConsoleCancelEventArgs, bool>? OnCancel { get; set; }
     public Func<bool>? OnTerminate { get; set; }
@@ -125,9 +127,9 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         Console.Write((message is not null ? message : "Select an option") + $": [1-{options.Length}{(defaultValue != 0 ? $", default: {defaultValue}" : "")}] ");
 
         var input = Console.ReadLine()?.Trim().ToLower();
-        if (string.IsNullOrWhiteSpace(input)) return defaultValue;
-
-        return int.TryParse(input, out var selectedIndex) && selectedIndex >= 0 && selectedIndex <= options.Length ? selectedIndex : 0;
+        return string.IsNullOrWhiteSpace(input)
+            ? defaultValue
+            : int.TryParse(input, out var selectedIndex) && selectedIndex >= 0 && selectedIndex <= options.Length ? selectedIndex : 0;
     }
 
     public static string GetStringInput(string message)
@@ -148,14 +150,14 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
             _ = sb.AppendLine("\nCommands:");
             foreach (var cmd in Commands) _ = sb.AppendLine($" {cmd.Name}{(cmd.TitleText is not null ? $" - {cmd.TitleText}" : null)}");
 
-            var switches = Arguments.Where(a => a.Type == ArgumentType.Switch);
+            var switches = Arguments.Where(static a => a.Type == ArgumentType.Switch);
             if (switches.Any())
             {
                 _ = sb.AppendLine("\nSwitches:");
                 foreach (var arg in switches) _ = sb.AppendLine($" {arg.LongNameIdentifier} - {arg.HelpText}");
             }
 
-            var options = Arguments.Where(a => a.Type == ArgumentType.Option);
+            var options = Arguments.Where(static a => a.Type == ArgumentType.Option);
             if (options.Any())
             {
                 _ = sb.AppendLine("\nOptions:");
@@ -189,6 +191,8 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
             }
 
             _command = Commands.FirstOrDefault(c => c.Name == args[0]);
+
+            if (GlobalArguments is not null) _command?.AddArguments(GlobalArguments);
         }
 
         if (!_isCommandBased || _command is null)
@@ -276,9 +280,9 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 
     private async Task<int> RunCommandAsync(CancellationToken cancellationToken = default)
     {
-        if (_command is null) throw new InvalidOperationException("Command not set");
-
-        return await _command!.RunFunctionAsync(this, cancellationToken);
+        return _command is null
+            ? throw new InvalidOperationException("Command not set")
+            : await _command!.RunFunctionAsync(this, cancellationToken);
     }
 
     private async Task<int> RunWithArgumentsAsync(CancellationToken cancellationToken = default)

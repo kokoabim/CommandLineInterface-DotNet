@@ -20,6 +20,7 @@ public class ConsoleArgument
     public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// If the argument is an option or switch, the identifier (i.e. -i or --identifier).
@@ -73,7 +74,8 @@ public class ConsoleArgument
         object? defaultValue = null,
         ArgumentPreProcesses preProcesses = ArgumentPreProcesses.None,
         Action<ConsoleArgument>? customPreProcess = null,
-        Type? constraintType = null)
+        Type? constraintType = null,
+        bool isGlobal = false)
     {
         DefaultValue = defaultValue;
         Constraints = constraints;
@@ -81,6 +83,7 @@ public class ConsoleArgument
         CustomPreProcess = customPreProcess;
         HelpText = helpText;
         Identifier = identifier ?? "";
+        IsGlobal = isGlobal;
         IsRequired = isRequired;
         Name = name;
         PreProcesses = preProcesses;
