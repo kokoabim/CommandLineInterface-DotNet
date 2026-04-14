@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,19 +9,22 @@ namespace Kokoabim.CommandLineInterface;
 public interface IConsoleAppHost
 {
     IHost Host { get; }
+    IHostApplicationBuilder HostApplicationBuilder { get; }
+    IHostEnvironment HostEnvironment { get; }
     ILoggerFactory LoggerFactory { get; }
     IServiceProvider ServiceProvider { get; }
 
-    IConsoleAppHost AddScoped<TService, TImplementation>()
+    IConsoleAppHost AddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService;
-    IConsoleAppHost AddSingleton<TService, TImplementation>()
+    IConsoleAppHost AddSingleton<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService;
-    IConsoleAppHost AddTransient<TService, TImplementation>()
+    IConsoleAppHost AddTransient<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService;
-    void Build();
+    IHost Build();
+    IConsoleAppHost Configure(Action<IServiceCollection, IConfigurationManager, IHostEnvironment> configure);
     T GetRequiredService<T>() where T : notnull;
     T? GetService<T>();
     IEnumerable<T> GetServices<T>();
@@ -28,91 +32,99 @@ public interface IConsoleAppHost
 
 public class ConsoleAppHost : IConsoleAppHost
 {
-    public IHost Host => _host is not null ? _host : throw new InvalidOperationException("ConsoleAppHost not built.");
-    public ILoggerFactory LoggerFactory => _loggerFactory is not null ? _loggerFactory : throw new InvalidOperationException("ConsoleAppHost not built.");
-    public IServiceProvider ServiceProvider => _serviceProvider is not null ? _serviceProvider : throw new InvalidOperationException("ConsoleAppHost not built.");
+    public IHost Host => _host is not null ? _host : throw new InvalidOperationException("ConsoleAppHost not built");
+    public IHostApplicationBuilder HostApplicationBuilder { get; }
+    public IHostEnvironment HostEnvironment { get; }
+    public ILoggerFactory LoggerFactory => _loggerFactory is not null ? _loggerFactory : throw new InvalidOperationException("ConsoleAppHost not built");
+    public IServiceProvider ServiceProvider => _serviceProvider is not null ? _serviceProvider : throw new InvalidOperationException("ConsoleAppHost not built");
 
     private IHost? _host;
-    private readonly IHostBuilder _hostBuilder;
     private ILoggerFactory? _loggerFactory;
     private IServiceProvider? _serviceProvider;
 
-    public ConsoleAppHost() : this("appsettings.json") { }
-
-    public ConsoleAppHost(string jsonFilePath, bool optional = true)
+    public ConsoleAppHost(Action<IServiceCollection, IConfigurationManager, IHostEnvironment>? configure = null, string? appsettingsFile = null, bool appsettingsFileOptional = true, bool appsettingsFileReloadOnChange = false)
     {
-        _hostBuilder = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration((hostContext, config) =>
+        HostApplicationBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
+        HostEnvironment = HostApplicationBuilder.Environment;
+
+        _ = HostApplicationBuilder.Configuration.SetBasePath(HostEnvironment.ContentRootPath);
+
+        if (!string.IsNullOrWhiteSpace(appsettingsFile))
+            _ = HostApplicationBuilder.Configuration.AddJsonFile(appsettingsFile, optional: appsettingsFileOptional, reloadOnChange: appsettingsFileReloadOnChange);
+
+        _ = HostApplicationBuilder.Configuration.AddEnvironmentVariables();
+
+        _ = HostApplicationBuilder.Services
+            .AddOptions()
+            .AddSingleton(HostEnvironment)
+            .AddSingleton<IConsoleAppHost>(this)
+            .AddSingleton<ILoggerFactory, LoggerFactory>()
+            .AddLogging(static builder =>
             {
-                _ = config
-                    .SetBasePath(hostContext.HostingEnvironment.ContentRootPath)
-                    .AddJsonFile(jsonFilePath, optional: optional, reloadOnChange: true)
-                    .AddEnvironmentVariables();
-            })
-            .ConfigureServices((hostContext, services) =>
-            {
-                _ = services
-                    .AddOptions()
-                    .AddSingleton(hostContext.HostingEnvironment)
-                    .AddSingleton<IConsoleAppHost>(this)
-                    .AddSingleton<ILoggerFactory, LoggerFactory>()
-                    .AddLogging(builder =>
+                _ = builder.AddSimpleConsole(static options =>
                 {
-                    _ = builder.AddSimpleConsole(options =>
-                    {
-                        _ = options.IncludeScopes = true;
-                        _ = options.SingleLine = true;
-                    });
+                    _ = options.IncludeScopes = true;
+                    _ = options.SingleLine = true;
                 });
             });
+
+        if (configure is not null) configure(HostApplicationBuilder.Services, HostApplicationBuilder.Configuration, HostEnvironment);
     }
 
-    public IConsoleAppHost AddScoped<TService, TImplementation>()
+    public IConsoleAppHost AddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
-        _ = _hostBuilder.ConfigureServices(static services =>
-        {
-            _ = services.AddScoped<TService, TImplementation>();
-        });
+        if (_host is not null) throw new InvalidOperationException("ConsoleAppHost already built");
+
+        _ = HostApplicationBuilder.Services.AddScoped<TService, TImplementation>();
 
         return this;
     }
 
-    public IConsoleAppHost AddSingleton<TService, TImplementation>()
+    public IConsoleAppHost AddSingleton<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
-        _ = _hostBuilder.ConfigureServices(static services =>
-        {
-            _ = services.AddSingleton<TService, TImplementation>();
-        });
+        if (_host is not null) throw new InvalidOperationException("ConsoleAppHost already built");
+
+        _ = HostApplicationBuilder.Services.AddSingleton<TService, TImplementation>();
 
         return this;
     }
 
-    public IConsoleAppHost AddTransient<TService, TImplementation>()
+    public IConsoleAppHost AddTransient<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
         where TService : class
         where TImplementation : class, TService
     {
-        _ = _hostBuilder.ConfigureServices(static services =>
-        {
-            _ = services.AddTransient<TService, TImplementation>();
-        });
+        if (_host is not null) throw new InvalidOperationException("ConsoleAppHost already built");
+
+        _ = HostApplicationBuilder.Services.AddTransient<TService, TImplementation>();
 
         return this;
     }
 
-    public void Build()
+    public IHost Build()
     {
-        _host = _hostBuilder.Build();
+        _host = ((HostApplicationBuilder)HostApplicationBuilder).Build();
         _serviceProvider = _host.Services;
         _loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
+
+        return _host;
     }
 
-    public T GetRequiredService<T>() where T : notnull => _serviceProvider is not null ? _serviceProvider.GetRequiredService<T>() : throw new InvalidOperationException("ConsoleAppHost not built.");
+    public IConsoleAppHost Configure(Action<IServiceCollection, IConfigurationManager, IHostEnvironment> configure)
+    {
+        if (_host is not null) throw new InvalidOperationException("ConsoleAppHost already built");
 
-    public T? GetService<T>() => _serviceProvider is not null ? _serviceProvider.GetService<T>() : throw new InvalidOperationException("ConsoleAppHost not built.");
+        configure(HostApplicationBuilder.Services, HostApplicationBuilder.Configuration, HostEnvironment);
 
-    public IEnumerable<T> GetServices<T>() => _serviceProvider is not null ? _serviceProvider.GetServices<T>() : throw new InvalidOperationException("ConsoleAppHost not built.");
+        return this;
+    }
+
+    public T GetRequiredService<T>() where T : notnull => _serviceProvider is not null ? _serviceProvider.GetRequiredService<T>() : throw new InvalidOperationException("ConsoleAppHost not built");
+
+    public T? GetService<T>() => _serviceProvider is not null ? _serviceProvider.GetService<T>() : throw new InvalidOperationException("ConsoleAppHost not built");
+
+    public IEnumerable<T> GetServices<T>() => _serviceProvider is not null ? _serviceProvider.GetServices<T>() : throw new InvalidOperationException("ConsoleAppHost not built");
 }
