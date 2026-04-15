@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <AssemblyVersion>0.3.2</AssemblyVersion>
-        <FileVersion>0.3.2</FileVersion>
-        <InformationalVersion>0.3.2</InformationalVersion>
+        <AssemblyVersion>0.3.3</AssemblyVersion>
+        <FileVersion>0.3.3</FileVersion>
+        <InformationalVersion>0.3.3</InformationalVersion>
 
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -11,12 +11,13 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <Version>0.3.2</Version>
+        <Version>0.3.3</Version>
         <PackageId>Kokoabim.CommandLineInterface</PackageId>
         <Description>Console tool command-line interface library.</Description>
         <TargetFramework>net10.0</TargetFramework>
 
-        <PackageVersion>0.3.3</PackageVersion>
+        <PackageTags>console;cli;commandline;command-line;tool</PackageTags>
+        <PackageVersion>0.3.4</PackageVersion>
         <PackageReleaseNotes></PackageReleaseNotes>
 
         <Authors>Spencer James</Authors>

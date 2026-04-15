@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -42,15 +43,37 @@ public class ConsoleAppHost : IConsoleAppHost
     private ILoggerFactory? _loggerFactory;
     private IServiceProvider? _serviceProvider;
 
-    public ConsoleAppHost(Action<IServiceCollection, IConfigurationManager, IHostEnvironment>? configure = null, string? appsettingsFile = null, bool appsettingsFileOptional = true, bool appsettingsFileReloadOnChange = false)
+    public ConsoleAppHost(
+        Action<IServiceCollection, IConfigurationManager, IHostEnvironment>? configure = null,
+        Assembly? assemblyForAppSettingsFile = null,
+        bool assemblyAppSettingsFileOptional = true,
+        bool reloadAssemblyAppSettingsFileOnChange = false,
+        string? appSettingsFile = null,
+        bool appSettingsFileOptional = true,
+        bool reloadAppSettingFilesOnChange = false)
     {
         HostApplicationBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         HostEnvironment = HostApplicationBuilder.Environment;
 
         _ = HostApplicationBuilder.Configuration.SetBasePath(HostEnvironment.ContentRootPath);
 
-        if (!string.IsNullOrWhiteSpace(appsettingsFile))
-            _ = HostApplicationBuilder.Configuration.AddJsonFile(appsettingsFile, optional: appsettingsFileOptional, reloadOnChange: appsettingsFileReloadOnChange);
+        if (assemblyForAppSettingsFile is not null)
+        {
+            var assemblyName = assemblyForAppSettingsFile.GetName().Name ?? "appsettings";
+
+            _ = HostApplicationBuilder.Configuration.AddJsonFile($"{assemblyName}.json", optional: assemblyAppSettingsFileOptional, reloadOnChange: reloadAssemblyAppSettingsFileOnChange);
+            _ = HostApplicationBuilder.Configuration.AddJsonFile($"{assemblyName}.{HostEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: reloadAssemblyAppSettingsFileOnChange);
+        }
+
+        if (!string.IsNullOrWhiteSpace(appSettingsFile))
+        {
+            _ = HostApplicationBuilder.Configuration.AddJsonFile(appSettingsFile, optional: appSettingsFileOptional, reloadOnChange: reloadAppSettingFilesOnChange);
+
+            if (appSettingsFile.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = HostApplicationBuilder.Configuration.AddJsonFile($"{appSettingsFile[..^5]}.{HostEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: reloadAppSettingFilesOnChange);
+            }
+        }
 
         _ = HostApplicationBuilder.Configuration.AddEnvironmentVariables();
 
