@@ -12,7 +12,6 @@ public interface IConsoleAppHost
     IHost Host { get; }
     IHostApplicationBuilder HostApplicationBuilder { get; }
     IHostEnvironment HostEnvironment { get; }
-    ILoggerFactory LoggerFactory { get; }
     IServiceProvider ServiceProvider { get; }
 
     IConsoleAppHost AddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
@@ -36,11 +35,9 @@ public class ConsoleAppHost : IConsoleAppHost
     public IHost Host => _host is not null ? _host : throw new InvalidOperationException("ConsoleAppHost not built");
     public IHostApplicationBuilder HostApplicationBuilder { get; }
     public IHostEnvironment HostEnvironment { get; }
-    public ILoggerFactory LoggerFactory => _loggerFactory is not null ? _loggerFactory : throw new InvalidOperationException("ConsoleAppHost not built");
     public IServiceProvider ServiceProvider => _serviceProvider is not null ? _serviceProvider : throw new InvalidOperationException("ConsoleAppHost not built");
 
     private IHost? _host;
-    private ILoggerFactory? _loggerFactory;
     private IServiceProvider? _serviceProvider;
 
     public ConsoleAppHost(
@@ -54,6 +51,8 @@ public class ConsoleAppHost : IConsoleAppHost
     {
         HostApplicationBuilder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder();
         HostEnvironment = HostApplicationBuilder.Environment;
+
+        if (configure is not null) configure(HostApplicationBuilder.Services, HostApplicationBuilder.Configuration, HostEnvironment);
 
         _ = HostApplicationBuilder.Configuration.SetBasePath(HostEnvironment.ContentRootPath);
 
@@ -79,9 +78,6 @@ public class ConsoleAppHost : IConsoleAppHost
 
         _ = HostApplicationBuilder.Services
             .AddOptions()
-            .AddSingleton(HostEnvironment)
-            .AddSingleton<IConsoleAppHost>(this)
-            .AddSingleton<ILoggerFactory, LoggerFactory>()
             .AddLogging(static builder =>
             {
                 _ = builder.AddSimpleConsole(static options =>
@@ -90,8 +86,6 @@ public class ConsoleAppHost : IConsoleAppHost
                     _ = options.SingleLine = true;
                 });
             });
-
-        if (configure is not null) configure(HostApplicationBuilder.Services, HostApplicationBuilder.Configuration, HostEnvironment);
     }
 
     public IConsoleAppHost AddScoped<TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>()
@@ -131,7 +125,6 @@ public class ConsoleAppHost : IConsoleAppHost
     {
         _host = ((HostApplicationBuilder)HostApplicationBuilder).Build();
         _serviceProvider = _host.Services;
-        _loggerFactory = _serviceProvider.GetRequiredService<ILoggerFactory>();
 
         return _host;
     }
