@@ -4,4 +4,5 @@
 **/obj/
 
 dist/
-nuget.sh
+publish-to-nuget.sh
+test-publish.sh
