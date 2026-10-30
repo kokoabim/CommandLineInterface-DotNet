@@ -27,7 +27,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
     public Func<bool>? OnTerminate { get; set; }
     public string Version { get; set; }
 
-    private int _cancelEventCount = 0;
+    private int _cancelEventCount;
     private CancellationTokenSource? _cancellationTokenSource;
     private ConsoleCommand? _command;
     private bool _hasProcessedCliArguments;
@@ -87,7 +87,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         var yesNo = defaultValue ? "Y/n" : "y/N";
         Console.Write($"{message}? [{yesNo}] ");
 
-        var input = Console.ReadLine()?.Trim().ToLower();
+        var input = Console.ReadLine()?.Trim().ToLowerInvariant();
         return input == "y" || input == "yes" || string.IsNullOrWhiteSpace(input) && defaultValue;
     }
 
@@ -126,7 +126,7 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
 
         Console.Write((message is not null ? message : "Select an option") + $": [1-{options.Length}{(defaultValue != 0 ? $", default: {defaultValue}" : "")}] ");
 
-        var input = Console.ReadLine()?.Trim().ToLower();
+        var input = Console.ReadLine()?.Trim().ToLowerInvariant();
         return string.IsNullOrWhiteSpace(input)
             ? defaultValue
             : int.TryParse(input, out var selectedIndex) && selectedIndex >= 0 && selectedIndex <= options.Length ? selectedIndex : 0;
@@ -301,5 +301,5 @@ public class ConsoleApp : ConsoleAppCommand, IConsoleApp
         }
     }
 
-    #endregion 
+    #endregion
 }

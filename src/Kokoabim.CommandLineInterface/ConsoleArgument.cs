@@ -20,7 +20,6 @@ public class ConsoleArgument
     public string? HelpText { get; set; }
     public bool HideInArgumentsUseText { get; set; }
     public int Id => GetHashCode();
-    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// If the argument is an option or switch, the identifier (i.e. -i or --identifier).
@@ -30,6 +29,7 @@ public class ConsoleArgument
     public int Index { get; set; } = -1;
     public bool IsBuiltIn => this == GlobalHelpSwitch || this == GlobalVersionSwitch;
     public bool IsDefaultValue => Value is null && DefaultValue is not null;
+    public bool IsGlobal { get; set; }
     public bool IsRequired { get; set; }
 
     public string LongNameIdentifier => Type switch
@@ -58,7 +58,7 @@ public class ConsoleArgument
     public ArgumentType Type { get; set; }
     public object? Value => _values.FirstOrDefault();
     public IReadOnlyList<object> Values => _values;
-    #endregion 
+    #endregion
 
     public static readonly ConsoleArgument GlobalHelpSwitch = new("help", "help", "Show help", ArgumentType.Switch) { HideInArgumentsUseText = true };
     public static readonly ConsoleArgument GlobalVersionSwitch = new("version", "version", "Show version", ArgumentType.Switch) { HideInArgumentsUseText = true, TopLevelOnly = true };
@@ -165,5 +165,5 @@ public class ConsoleArgument
     }
 
     public override string? ToString() => GetValueOrDefault()?.ToString();
-    #endregion 
+    #endregion
 }

@@ -238,5 +238,5 @@ public class ConsoleContext
     /// <param name="compareId">If true, also compares the argument ID.</param>
     public bool HasSwitch(string name, bool compareId = false) => GetSwitchValueOrDefault(name, compareId) is bool b && b;
 
-    #endregion 
+    #endregion
 }

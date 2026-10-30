@@ -3,21 +3,6 @@ namespace Kokoabim.CommandLineInterface.Tests;
 public class TestConsoleAppTests
 {
     [Fact]
-    public async Task WithArgsAsync()
-    {
-        // arrange
-        var target = new TestConsoleApp();
-        var debugWriter = DebugWriter.Create();
-
-        // act
-        var actual = await target.RunWithArgumentsAsync(["World"]);
-
-        // assert
-        Assert.Equal(0, actual);
-        Assert.Equal("Hello, World!\n", debugWriter.Output);
-    }
-
-    [Fact]
     public async Task WithArgs_ButNoArgsAsync()
     {
         // arrange
@@ -63,18 +48,18 @@ public class TestConsoleAppTests
     }
 
     [Fact]
-    public async Task WithCommandAsync()
+    public async Task WithArgsAsync()
     {
         // arrange
         var target = new TestConsoleApp();
         var debugWriter = DebugWriter.Create();
 
         // act
-        var actual = await target.RunWithDoubleNumberCommandAsync(["double", "2"]);
+        var actual = await target.RunWithArgumentsAsync(["World"]);
 
         // assert
         Assert.Equal(0, actual);
-        Assert.Equal("4", debugWriter.Output);
+        Assert.Equal("Hello, World!\n", debugWriter.Output);
     }
 
     [Fact]
@@ -120,5 +105,20 @@ public class TestConsoleAppTests
         // assert
         Assert.Equal(0, actual);
         Assert.Equal("Double a number\nCommand: double number\n\nSwitches:\n help - Show help\n\nArguments:\n number - The number to double\n", debugWriter.Output);
+    }
+
+    [Fact]
+    public async Task WithCommandAsync()
+    {
+        // arrange
+        var target = new TestConsoleApp();
+        var debugWriter = DebugWriter.Create();
+
+        // act
+        var actual = await target.RunWithDoubleNumberCommandAsync(["double", "2"]);
+
+        // assert
+        Assert.Equal(0, actual);
+        Assert.Equal("4", debugWriter.Output);
     }
 }
